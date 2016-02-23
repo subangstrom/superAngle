@@ -101,7 +101,7 @@ else
                 else
                     %Done, convert from atomic ratio to weight ratio
                     comp_ratio_atomic=comp_ratio_ini; %atomic percent output
-                    comp_ratio_ini = (comp_ratio_ini *Atomic_weight_A)/((comp_ratio_ini *Atomic_weight_A)+((1-comp_ratio_ini) *Atomic_weight_B)); %weight percent output
+                    comp_ratio_ini = (comp_ratio_ini *Atomic_weight_A)/((comp_ratio_ini *Atomic_weight_A)+(1* Atomic_weight_B)); %weight percent output
                     break;
                 end              
             end
