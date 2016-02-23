@@ -137,7 +137,7 @@ else
     comp_ratio_out = comp_ratio_ini; 
     comp_ratio_weight=comp_ratio_atomic;
     comp_ratio_atomic=comp_ratio_atomic./(1+comp_ratio_atomic);
-    comp_ratio_weight = (comp_ratio_weight*Atomic_weight_A)./((comp_ratio_weight*Atomic_weight_A)+((1-comp_ratio_weight)*Atomic_weight_B)); %weight percent output
+    comp_ratio_weight = (comp_ratio_weight*Atomic_weight_A)./((comp_ratio_weight*Atomic_weight_A)+(1*Atomic_weight_B)); %weight percent output
     comp_ratio_atomic(:,1)=comp_ratio_ini(:,1);
     comp_ratio_weight(:,1)=comp_ratio_ini(:,1);
     
