@@ -93,4 +93,4 @@ Live acquisition time will vary with dwell time setting. It must be read from ra
 
 The authors request that any published work or images created using SuperAngle include the following reference:
 
-W. Xu, J.H. Dycus, X. Sang, J.M. Lebeau, A Numerical Model for Multiple Detector Energy Dispersive X-ray Spectroscopy in the Transmission Electron Microscope", Ultramicroscopy, 2016, in press.
+W. Xu, J.H. Dycus, X. Sang, J.M. Lebeau, A Numerical Model for Multiple Detector Energy Dispersive X-ray Spectroscopy in the Transmission Electron Microscope", Ultramicroscopy, 2016, 164 (2016) 51-61.
