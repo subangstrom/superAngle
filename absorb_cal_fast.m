@@ -7,8 +7,8 @@ function [ tot_A1, tot_A2] = absorb_cal_fast (sample_para, angle_precal, t, S_n)
 % p=7.2 g/cm3
 % (u/p)Al-K_Ni3Al = 4311.95 cm2/g (u/p)*p=31046 cm-1
 % (u/p)Ni-K_Ni3Al = 61.012 cm2/g (u/p)*p=439.3 cm-1
-u1 = sample_para(7)*1e-7;
-u2 = sample_para(8)*1e-7;
+u1 = sample_para.uA*1e-7;
+u2 = sample_para.uB*1e-7;
 
 %[S_n] = sample_normal(sample_para);
 

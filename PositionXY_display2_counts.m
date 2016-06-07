@@ -1,4 +1,4 @@
-function [  ] = PositionXY_display2_counts( chk_print, A_map, B_map, ratio_map, tot_Det_num, angle_search, sample_para, search_Range_2D, d_Range_2D )
+function [  ] = PositionXY_display2_counts( Shift_map, chk_print, Detector, sample_para, search_Range_2D, d_Range_2D )
 %Display 2D map for correction coefficient due to X-ray absorption and/or holder shadowing
 %Along Specimen shift in X and Y direction.
 %Weizong Xu, wxu4@ncsu.edu, March 2015
@@ -13,11 +13,14 @@ else
     maptype='jet';
 end
 
+A_map=Shift_map.A_map;
+B_map=Shift_map.B_map;
+ratio_map=Shift_map.ratio_map;
 if (sum(A_map(:))==0 && sum(B_map(:)) ==0)
     return;
 end
 
-[ convert_factor_A,convert_factor_B, tempA,tempB ] = absolute_scale_factor( sample_para);
+[ convert_factor_A,convert_factor_B, ~,~ ] = absolute_scale_factor( sample_para);
 A_map_counts=A_map*convert_factor_A;
 B_map_counts=B_map*convert_factor_B;
 
@@ -25,10 +28,12 @@ A_map_all=sum(A_map_counts,3);
 B_map_all=sum(B_map_counts,3);
 
 
-sym_A = get_element_name(sample_para(13),sample_para(14));
-sym_B = get_element_name(sample_para(15),sample_para(16));
+sym_A = get_element_name(sample_para.EleA_num,sample_para.EleA_shell);
+sym_B = get_element_name(sample_para.EleB_num,sample_para.EleB_shell);
 image_range=-search_Range_2D:d_Range_2D:search_Range_2D;
 
+tot_Det_num=Detector.tot_Det_num;
+angle_search=Detector.angle_search;
 for i=1:tot_Det_num
     figure;
     set(gca,'FontSize',15)

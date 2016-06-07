@@ -1,18 +1,19 @@
-function [ comp_ratio_out, comp_ratio_atomic ] = composition_cal_single_spot( exp_A, exp_B, tot_Det_num, sample_para, holder_para, holder_frame_para, angle_search, SpuriousX)
+function [ comp_ratio_out, comp_ratio_atomic ] = composition_cal_single_spot( exp, Detector, sample_para, holder_para, SpuriousX)
 %Calculate composition of AxBy based on k_ideal and correction coefficient
 %Single spot, only for detector sum signal
 %Beta version, error estimation is not available. Further code modifications will be done.
 %Weizong Xu, April, 2015
 
 %[ A_exp, A_exp_norm, max_A_exp, B_exp, B_exp_norm, max_B_exp, ratio_exp, ratio_exp_all, tot_Det_num] = read_exp_data( exp_file );
-
+tot_Det_num=Detector.tot_Det_num;
+%angle_search=Detector.angle_search;
 if (tot_Det_num ==0)
     comp_ratio_out = 0;
     comp_ratio_atomic = 0;
     return;
 end
 
-cal_chk=sample_para(12); 
+cal_chk=sample_para.cal_chk; 
 %comp_ratio_out = zeros(length(ratio_exp_all), tot_Det_num+2);
 
 
@@ -25,17 +26,19 @@ if (cal_chk ~= 1)
     return;
 else
     %Calculate composition without knowing/comparing the ideal one.
-    comp_ratio_ini=exp_A/exp_B; %Sum signal only
+    %comp_ratio_ini=exp_A/exp_B; %Sum signal only
+    exp_A=exp.A_counts;
+    exp_B=exp.B_counts;
     ratio_exp=exp_A/exp_B;
     
-    EleA_num = sample_para(13);
-    EleA_shell = sample_para(14);
-    EleB_num = sample_para(15);
-    EleB_shell = sample_para(16);
-    AB_Density =  sample_para(18);
-    k_factor_others = sample_para(19);
-    k_AB_ideal = sample_para(20);
-    cal_chk2 = 0;
+    EleA_num = sample_para.EleA_num;
+    EleA_shell = sample_para.EleA_shell;
+    EleB_num = sample_para.EleB_num;
+    EleB_shell = sample_para.EleB_shell;
+    AB_Density =  sample_para.AB_Density;
+    %k_factor_others = sample_para.k_factors_other;
+    k_AB_ideal = sample_para.k_AB_ideal;
+    %cal_chk2 = 0;
     Absorp_table (:,:,1) = xlsread ('Absorption coefficient_K.xlsx'); %K-shell cm2/g
     Absorp_table (:,:,2) = xlsread ('Absorption coefficient_L.xlsx'); %L-shell cm2/g
     Absorp_table (:,:,3) = xlsread ('Absorption coefficient_M.xlsx'); %M-shell cm2/g
@@ -57,10 +60,10 @@ else
 %        Iteration_for_data_point = i
 %        if (chkX_Y == 2) % 2) along Y tilt
 %            TiltY=comp_ratio_ini(i,1);
-            TiltX=sample_para(3);
+            TiltX=sample_para.TiltX;
 %        else
 %            TiltX=comp_ratio_ini(i,1); % other value, along X tilt
-            TiltY=sample_para(4);
+            TiltY=sample_para.TiltY;
 %        end
         
 %        for j=1:tot_Det_num+1
@@ -83,12 +86,12 @@ else
                 uB = uB * AB_Density;
                 
                 sample_para_temp = sample_para;
-                sample_para_temp(7)=uA;
-                sample_para_temp(8)=uB;
-                sample_para_temp(17)=Atomic_ratio;
-                sample_para_temp(12)=0; %set cal_chk=0, enable composition calculation
+                sample_para_temp.uA=uA;
+                sample_para_temp.uB=uB;
+                sample_para_temp.Atomic_ratio=Atomic_ratio;
+                sample_para_temp.cal_chk=0; %set cal_chk=0, enable composition calculation
 
-                [point_out] = single_spot(TiltX, TiltY, tot_Det_num, sample_para_temp, holder_para, holder_frame_para, angle_search, SpuriousX);
+                [point_out] = single_spot(TiltX, TiltY, Detector, sample_para_temp, holder_para, SpuriousX);
                 correction_factor = k_AB_ideal_atomic/point_out(tot_Det_num+1,4);
 %                if (j<=tot_Det_num)
 %                    swap = correction_factor * ratio_exp(i,2,j);

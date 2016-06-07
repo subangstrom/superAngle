@@ -1,24 +1,24 @@
-function [ H_angle_out ] = Holder_frame_shadow_fast_up(sample_para, holder_para, holder_frame_para, angle_search_in)
+function [ H_angle_out ] = Holder_frame_shadow_fast_up(sample_para, holder_para, angle_search_in)
 %Shadowing effect from holder contour (FEI low background holder)
 %Materials for holder contour is brass
 %Weizong Xu, April, 2015, wxu4@ncsu.edu
 
 
-HolderX = sample_para(9);
-HolderY = sample_para(10);
+HolderX = sample_para.POSX;
+HolderY = sample_para.POSY;
 %HolderX = HolderX+0;%temp set as zero, later consider HolderX, HolderY calebration with Stage display value
 %HolderY = HolderY+0;
-TiltX = sample_para(3)*pi/180;
-TiltY = sample_para(4)*pi/180; %Note: holder frame won't tilt in Y
+TiltX = sample_para.TiltX*pi/180;
+TiltY = sample_para.TiltY*pi/180; %Note: holder frame won't tilt in Y
 %direction, but z-height relative to the holder will change with HolderX
 %(if it is not zero)
-depthZ = sample_para(21);
+depthZ = sample_para.DepthZ;
 depthZ = depthZ-HolderX*sin(TiltY); %compensate Z_shift during Y-tilt
 HolderX = HolderX*cos(TiltY); %compensate X_shift during Y-tilt 
 %Note: Need very accurate calibration of relative position between center point in STEM and holder
 %center before use it. Also sample need stay at one point exactly. 
 %If HolderX is small, simple results without compensation is also very close.
-
+holder_frame_para=holder_para.FEI_frame_out;
 FEI_frame_out = zeros(length(holder_frame_para),3);
 FEI_frame_out(:,1) = holder_frame_para(:,1)-HolderX;
 FEI_frame_out(:,2) = holder_frame_para(:,2)-HolderY;

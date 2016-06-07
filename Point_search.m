@@ -1,4 +1,4 @@
-function [ Al_out, Ni_out] = Point_search( sample_para, holder_para, holder_frame_para, angle_search, Spurious)
+function [ Al_out, Ni_out] = Point_search( sample_para, holder_para, angle_search, Spurious)
 %Calculate X-ray absorption ratio and absorption correction efficient
 %Search for one point
 %Weizong Xu, Feb. 2015
@@ -6,12 +6,12 @@ function [ Al_out, Ni_out] = Point_search( sample_para, holder_para, holder_fram
 
 %Wedge_angle = sample_para_in(1); %deg Assume wedge line parallel to x-axis, thin area towards Y+
 %RotateZ = sample_para_in(2);
-TiltX = sample_para(3);
-TiltY = sample_para(4);
+TiltX = sample_para.TiltX;
+TiltY = sample_para.TiltY;
 
-Thickness0 = sample_para(5);
-n= sample_para(6);
-t_chk = sample_para(11);
+Thickness0 = sample_para.Thickness;
+n= sample_para.Slice_t;
+t_chk = sample_para.t_chk;
 
 if (t_chk == 1)
     Thickness = Thickness0;
@@ -25,7 +25,7 @@ Al_out=0;
 tot_Ni=0;
 Ni_out=0;
 
-[H_angle_out] = Holder_shadow(sample_para, holder_para, holder_frame_para, angle_search);
+[H_angle_out] = Holder_shadow(sample_para, holder_para, angle_search);
 temp_num=size(H_angle_out);              
 [S_n] = sample_normal([0,0,1], sample_para);
         

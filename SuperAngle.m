@@ -56,7 +56,7 @@ function SuperAngle_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 clc;
 
-disp ('SuperAngle V1.20GUI for Super-X EDS')
+disp ('SuperAngle V1.30GUI for Super-X EDS')
 disp ('-------------------------------------------------------------------')
 disp ('This software calculates:')
 disp ('(a) Effective solid angle under specimen tilt and shift condition')
@@ -68,18 +68,19 @@ disp ('It is based on numeric approach taking effects from multiple')
 disp ('detector geometry, Be holder absorption. holder frame shadowing,')
 disp ('and specimen absorption into consideration.')
 disp ('Support for single and multiple detectors configuration.')
+disp ('Accelerate simulation via parallel computing.')
 disp ('For strong absorption system, please set sample inclination angle.')
 disp ('Spurious X-ray is not modeled, but please keep this effect in mind.')
 disp ('     ')
 disp ('Modeled and Coded by Weizong Xu, LeBeau Group')
 disp ('Please find details in "A Numerical Model for Multiple Detector')
-disp ('Energy Dispersive X-ray Spectroscopy in the Transmission Electron')
-disp ('Microscope", Ultramicroscopy, 2016, in press');
+disp ('Energy Dispersive X-ray Spectroscopy in the Transmission')
+disp ('Electron Microscope", Ultramicroscopy, 164(2016)51-61.');
 disp ('     ')
 disp ('Email James M. LeBeau (jmlebeau@ncsu.edu) or') 
-disp ('Weizong Xu (wxu4@ncsu.edu) for information and supports.')
+disp ('Weizong Xu (wxu4@ncsu.edu) for information and support.')
 disp ('-------------------------------------------------------------------')
-% May 2015
+% June 2016
 
 %=======Coordinate========
 %   Titan G2 ChemiSTEM
@@ -93,10 +94,9 @@ disp ('-------------------------------------------------------------------')
 %     225deg     315deg
 %            
 %=========================
-handles.dAngle = 0.2; %Accuracy for angular intergration, 0.5 is fairly good for speed, 0.2 is better for accuracy
-set(handles.edit_detAngle, 'String', num2str(handles.dAngle));
-[ handles.detector_para, handles.tot_Det_num ] = Detector_input( 'detector.xlsx' );
-[ handles.angle_search, handles.detector_para] = Detector_setup( handles.detector_para, handles.dAngle );
+dAngle = 0.2; %Accuracy for angular intergration, 0.5 is fairly good for speed, 0.2 is better for accuracy
+set(handles.edit_detAngle, 'String', num2str(dAngle));
+[ handles.Detector ] = Detector_input( 'detector.xlsx', dAngle );
 update_detector_info(hObject, eventdata, handles)
 
 handles.SpuriousX=zeros(10); %disable SpuriousX function
@@ -106,54 +106,54 @@ set(handles.checkbox2,'Value',1);
 filename_Sinput='specimen_startup.xlsx';
 [ handles.sample_para ] = Specimen_setup( filename_Sinput, handles.t_chk );
 %[ handles.sample_para ] = Specimen_setup( 'specimen_SrTiO3.xlsx', handles.t_chk );
-if (handles.sample_para(12)~=1)
+if (handles.sample_para.cal_chk~=1)
     set(handles.checkbox1,'Value',1);
-    set(handles.edit2, 'String', num2str(handles.sample_para(17)));
+    set(handles.edit2, 'String', num2str(handles.sample_para.Atomic_ratio));
 end
-set(handles.edit3, 'String', num2str(handles.sample_para(5)));
+set(handles.edit3, 'String', num2str(handles.sample_para.Thickness));
 
 handles.chk_Shadow = 2;
 set(handles.checkbox3,'Value',0);
 
-set(handles.edit4, 'String', num2str(handles.sample_para(18)));
-set(handles.edit5, 'String', num2str(handles.sample_para(9)));
-set(handles.edit6, 'String', num2str(handles.sample_para(10)));
-set(handles.edit7, 'String', num2str(handles.sample_para(21)));
-set(handles.edit8, 'String', num2str(handles.sample_para(3)));
-set(handles.edit9, 'String', num2str(handles.sample_para(4)));
-set(handles.edit10, 'String', num2str(handles.sample_para(1)));
-set(handles.edit11, 'String', num2str(handles.sample_para(2)));
-set(handles.edit18, 'String', num2str(handles.sample_para(22)));
-set(handles.edit19, 'String', num2str(handles.sample_para(23)));
-set(handles.popupmenu1, 'Value', handles.sample_para(13)-2);
-set(handles.popupmenu2, 'Value', handles.sample_para(15)-2);
-set(handles.popupmenu3, 'Value', handles.sample_para(14));
-set(handles.popupmenu4, 'Value', handles.sample_para(16));
+set(handles.edit4, 'String', num2str(handles.sample_para.AB_Density));
+set(handles.edit5, 'String', num2str(handles.sample_para.POSX));
+set(handles.edit6, 'String', num2str(handles.sample_para.POSY));
+set(handles.edit7, 'String', num2str(handles.sample_para.DepthZ));
+set(handles.edit8, 'String', num2str(handles.sample_para.TiltX));
+set(handles.edit9, 'String', num2str(handles.sample_para.TiltY));
+set(handles.edit10, 'String', num2str(handles.sample_para.Deviation_angle_X));
+set(handles.edit11, 'String', num2str(handles.sample_para.Deviation_angle_Y));
+set(handles.edit18, 'String', num2str(handles.sample_para.probe_Ne));
+set(handles.edit19, 'String', num2str(handles.sample_para.acquire_time));
+set(handles.popupmenu1, 'Value', handles.sample_para.EleA_num-2);
+set(handles.popupmenu2, 'Value', handles.sample_para.EleB_num-2);
+set(handles.popupmenu3, 'Value', handles.sample_para.EleA_shell);
+set(handles.popupmenu4, 'Value', handles.sample_para.EleB_shell);
 
 %[ handles.holder_para, handles.holder_frame_para ] = Holder_setup( handles.chk_Shadow, 'holder_dapo_No1.xlsx', handles.sample_para );
-[ handles.holder_para, handles.holder_frame_para ] = Holder_setup( handles.chk_Shadow, 'holder_FEI_LB.xlsx', handles.sample_para );
-if (handles.holder_para(10)==1)
+[ handles.holder_para ] = Holder_setup( handles.chk_Shadow, 'holder_FEI_LB.xlsx', handles.sample_para );
+if (handles.holder_para.chk_holder==1)
     set(handles.popupmenu5, 'Value', 1);
     set(handles.checkbox4,'Value',1);
 else
     set(handles.popupmenu5, 'Value',2);
 end
 
-set(handles.edit12, 'String', num2str(handles.holder_para(1)));
-set(handles.edit13, 'String', num2str(handles.holder_para(2)));
-set(handles.edit14, 'String', num2str(handles.holder_para(4)));
+set(handles.edit12, 'String', num2str(handles.holder_para.Depth));
+set(handles.edit13, 'String', num2str(handles.holder_para.Effective_ring_diameter));
+set(handles.edit14, 'String', num2str(handles.holder_para.Wall_angle));
 
-if (handles.holder_para(7)==1)
+if (handles.holder_para.grid_chk==1)
     set(handles.checkbox5,'Value',1);
 else
     set(handles.checkbox5,'Value',0);
 end
 
-if (handles.holder_para(8)==1)
+if (handles.holder_para.type_grid==1)
     set(handles.popupmenu6, 'Value', 1);
 else
     set(handles.popupmenu6, 'Value',2);
-    set(handles.edit15, 'String', num2str(handles.holder_para(9)));
+    set(handles.edit15, 'String', num2str(handles.holder_para.open_diameter_grid));
 end
 %Set tilt series along x-direction as default
 set(handles.checkbox7,'Value',1)
@@ -164,14 +164,14 @@ handles.line_cal=1;
 
 handles.exp_file='';
 %handles.chkXY = -1;
-handles.A_exp_counts=0;
-handles.B_exp_counts=0;
+handles.exp.A_counts=0;
+handles.exp.B_counts=0;
 handles.chk_print = 2;
 
 if (strcmp (filename_Sinput, 'specimen_Ni3Al_demo.xlsx')) %demo mode, has Mo slot grid, setup here
-    handles.holder_para(7)= 1; %grid_chk(Shadow by sample grid? 1-Yes 2-No)
-    handles.holder_para(8)= 1; %type_grid(standard 1x2 slot? (1=yes others no))
-    handles.holder_para(9)= 0; %open_diameter_grid(If others, input grid open diameter (in mm))
+    handles.holder_para.grid_chk= 1; %grid_chk(Shadow by sample grid? 1-Yes 2-No)
+    handles.holder_para.type_grid= 1; %type_grid(standard 1x2 slot? (1=yes others no))
+    handles.holder_para.open_diameter_grid= 0; %open_diameter_grid(If others, input grid open diameter (in mm))
     set(handles.checkbox5,'Value',1);
     handles.exp_file='Exp_data_Ni3Al_demo_X.xlsx';
     disp('Demo Ni3Al specimen info is loaded, have fun!')
@@ -224,65 +224,65 @@ set(handles.text_det_takeoff1, 'String', '');
 set(handles.text_det_azimuth1, 'String', '');
 set(handles.text_det_distance1, 'String', '');
 set(handles.text_det_tilt1, 'String', '');
-set(handles.text_det_diameter1, 'String', '');
+set(handles.text_det_radius1, 'String', '');
 set(handles.text_det_solid1, 'String', '');
 set(handles.text_det_takeoff2, 'String', '');
 set(handles.text_det_azimuth2, 'String', '');
 set(handles.text_det_distance2, 'String', '');
 set(handles.text_det_tilt2, 'String', '');
-set(handles.text_det_diameter2, 'String', '');
+set(handles.text_det_radius2, 'String', '');
 set(handles.text_det_solid2, 'String', '');
 set(handles.text_det_takeoff3, 'String', '');
 set(handles.text_det_azimuth3, 'String', '');
 set(handles.text_det_distance3, 'String', '');
 set(handles.text_det_tilt3, 'String', '');
-set(handles.text_det_diameter3, 'String', '');
+set(handles.text_det_radius3, 'String', '');
 set(handles.text_det_solid3, 'String', '');
 set(handles.text_det_takeoff4, 'String', '');
 set(handles.text_det_azimuth4, 'String', '');
 set(handles.text_det_distance4, 'String', '');
 set(handles.text_det_tilt4, 'String', '');
-set(handles.text_det_diameter4, 'String', '');
+set(handles.text_det_radius4, 'String', '');
 set(handles.text_det_solid4, 'String', '');
 set(handles.text_note, 'String', '');
 
-if (handles.tot_Det_num>=1)
-set(handles.text_det_takeoff1, 'String', num2str(handles.detector_para(1,4)));
-set(handles.text_det_azimuth1, 'String', num2str(handles.detector_para(1,5)));
-set(handles.text_det_distance1, 'String', num2str(handles.detector_para(1,3)));
-set(handles.text_det_tilt1, 'String', num2str(handles.detector_para(1,6)));
-set(handles.text_det_diameter1, 'String', num2str(handles.detector_para(1,7)));
-set(handles.text_det_solid1, 'String', num2str(handles.detector_para(1,8)));
+if (handles.Detector.tot_Det_num>=1)
+set(handles.text_det_takeoff1, 'String', num2str(handles.Detector.detector_para.Takeoff_angle(1)));
+set(handles.text_det_azimuth1, 'String', num2str(handles.Detector.detector_para.Azimuth_angle(1)));
+set(handles.text_det_distance1, 'String', num2str(handles.Detector.detector_para.Distance(1)));
+set(handles.text_det_tilt1, 'String', num2str(handles.Detector.detector_para.Self_tilt(1)));
+set(handles.text_det_radius1, 'String', num2str(handles.Detector.detector_para.Detector_radius(1)));
+set(handles.text_det_solid1, 'String', num2str(handles.Detector.detector_para.Solid_angle(1)));
 end
 
-if (handles.tot_Det_num>=2)
-set(handles.text_det_takeoff2, 'String', num2str(handles.detector_para(2,4)));
-set(handles.text_det_azimuth2, 'String', num2str(handles.detector_para(2,5)));
-set(handles.text_det_distance2, 'String', num2str(handles.detector_para(2,3)));
-set(handles.text_det_tilt2, 'String', num2str(handles.detector_para(2,6)));
-set(handles.text_det_diameter2, 'String', num2str(handles.detector_para(2,7)));
-set(handles.text_det_solid2, 'String', num2str(handles.detector_para(2,8)));
+if (handles.Detector.tot_Det_num>=2)
+set(handles.text_det_takeoff2, 'String', num2str(handles.Detector.detector_para.Takeoff_angle(2)));
+set(handles.text_det_azimuth2, 'String', num2str(handles.Detector.detector_para.Azimuth_angle(2)));
+set(handles.text_det_distance2, 'String', num2str(handles.Detector.detector_para.Distance(2)));
+set(handles.text_det_tilt2, 'String', num2str(handles.Detector.detector_para.Self_tilt(2)));
+set(handles.text_det_radius2, 'String', num2str(handles.Detector.detector_para.Detector_radius(2)));
+set(handles.text_det_solid2, 'String', num2str(handles.Detector.detector_para.Solid_angle(2)));
 end
 
-if (handles.tot_Det_num>=3)
-set(handles.text_det_takeoff3, 'String', num2str(handles.detector_para(3,4)));
-set(handles.text_det_azimuth3, 'String', num2str(handles.detector_para(3,5)));
-set(handles.text_det_distance3, 'String', num2str(handles.detector_para(3,3)));
-set(handles.text_det_tilt3, 'String', num2str(handles.detector_para(3,6)));
-set(handles.text_det_diameter3, 'String', num2str(handles.detector_para(3,7)));
-set(handles.text_det_solid3, 'String', num2str(handles.detector_para(3,8)));
+if (handles.Detector.tot_Det_num>=3)
+set(handles.text_det_takeoff3, 'String', num2str(handles.Detector.detector_para.Takeoff_angle(3)));
+set(handles.text_det_azimuth3, 'String', num2str(handles.Detector.detector_para.Azimuth_angle(3)));
+set(handles.text_det_distance3, 'String', num2str(handles.Detector.detector_para.Distance(3)));
+set(handles.text_det_tilt3, 'String', num2str(handles.Detector.detector_para.Self_tilt(3)));
+set(handles.text_det_radius3, 'String', num2str(handles.Detector.detector_para.Detector_radius(3)));
+set(handles.text_det_solid3, 'String', num2str(handles.Detector.detector_para.Solid_angle(3)));
 end
 
-if (handles.tot_Det_num>=4)
-set(handles.text_det_takeoff4, 'String', num2str(handles.detector_para(4,4)));
-set(handles.text_det_azimuth4, 'String', num2str(handles.detector_para(4,5)));
-set(handles.text_det_distance4, 'String', num2str(handles.detector_para(4,3)));
-set(handles.text_det_tilt4, 'String', num2str(handles.detector_para(4,6)));
-set(handles.text_det_diameter4, 'String', num2str(handles.detector_para(4,7)));
-set(handles.text_det_solid4, 'String', num2str(handles.detector_para(4,8)));
+if (handles.Detector.tot_Det_num>=4)
+set(handles.text_det_takeoff4, 'String', num2str(handles.Detector.detector_para.Takeoff_angle(4)));
+set(handles.text_det_azimuth4, 'String', num2str(handles.Detector.detector_para.Azimuth_angle(4)));
+set(handles.text_det_distance4, 'String', num2str(handles.Detector.detector_para.Distance(4)));
+set(handles.text_det_tilt4, 'String', num2str(handles.Detector.detector_para.Self_tilt(4)));
+set(handles.text_det_radius4, 'String', num2str(handles.Detector.detector_para.Detector_radius(4)));
+set(handles.text_det_solid4, 'String', num2str(handles.Detector.detector_para.Solid_angle(4)));
 end
 
-if (handles.tot_Det_num>=5)
+if (handles.Detector.tot_Det_num>=5)
 set(handles.text_note, 'String', 'More than 4 detectors');
 end
 
@@ -292,10 +292,10 @@ function update_FEI_holder(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-EleA_num = handles.sample_para(13);
-EleA_shell = handles.sample_para(14); %1) K; 2) L; 3) M;
-EleB_num = handles.sample_para(15);
-EleB_shell = handles.sample_para(16); %1) K; 2) L; 3) M;
+EleA_num = handles.sample_para.EleA_num;
+EleA_shell = handles.sample_para.EleA_shell; %1) K; 2) L; 3) M;
+EleB_num = handles.sample_para.EleB_num;
+EleB_shell = handles.sample_para.EleB_shell; %1) K; 2) L; 3) M;
 Absorp_table (:,:,1) = xlsread ('Absorption coefficient_K.xlsx'); %K-shell cm2/g
 Absorp_table (:,:,2) = xlsread ('Absorption coefficient_L.xlsx'); %L-shell cm2/g
 Absorp_table (:,:,3) = xlsread ('Absorption coefficient_M.xlsx'); %M-shell cm2/g
@@ -304,18 +304,18 @@ uA_holder = Absorp_table(4,EleA_num,EleA_shell)*Be_density; %atomic number of Be
 uB_holder = Absorp_table(4,EleB_num,EleB_shell)*Be_density;
 disp('Setup ideal holder parameters for FEI low background holder in Titan');
 
-handles.holder_para(5)=uA_holder;
-handles.holder_para(6)=uB_holder;
-handles.holder_para(1)=0.22;
-handles.holder_para(2)=3.10;
-handles.holder_para(4)=20;
+handles.holder_para.uA_holder=uA_holder;
+handles.holder_para.uB_holder=uB_holder;
+handles.holder_para.Depth=0.22;
+handles.holder_para.Effective_ring_diameter=3.10;
+handles.holder_para.Wall_angle=20;
 handles.chk_Shadow = 2;
 
 
 set(handles.checkbox4,'Value',1);
-set(handles.edit12, 'String', num2str(handles.holder_para(1)));
-set(handles.edit13, 'String', num2str(handles.holder_para(2)));
-set(handles.edit14, 'String', num2str(handles.holder_para(4)));
+set(handles.edit12, 'String', num2str(handles.holder_para.Depth));
+set(handles.edit13, 'String', num2str(handles.holder_para.Effective_ring_diameter));
+set(handles.edit14, 'String', num2str(handles.holder_para.Wall_angle));
 set(handles.checkbox3,'Value',0);
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
@@ -334,11 +334,12 @@ function edit_detAngle_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit_detAngle as text
 %        str2double(get(hObject,'String')) returns contents of edit_detAngle as a double
-handles.dAngle=str2double(get(hObject,'String'));
+handles.Detector.dAngle=str2double(get(hObject,'String'));
 disp('dAngle is set as ')
-disp(handles.dAngle)
+disp(handles.Detector.dAngle)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
+[ handles.Detector] = Detector_setup( handles.Detector );
 guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -360,10 +361,10 @@ function input_detector_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [filename, pathname] = uigetfile({'*.xlsx'},'Detector input file')
-%[ handles.detector_para, handles.tot_Det_num ] = Detector_input( 'detector.xlsx' );
+%[ handles.detector_para, handles.Detector.tot_Det_num ] = Detector_input( 'detector.xlsx' );
 if (filename ~=0)
-[ handles.detector_para, handles.tot_Det_num ] = Detector_input( filename );
-[ handles.angle_search, handles.detector_para] = Detector_setup( handles.detector_para, handles.dAngle );
+[ handles.Detector.detector_para, handles.Detector.tot_Det_num ] = Detector_input( filename );
+[ handles.Detector] = Detector_setup( handles.Detector );
 %set(handles.staticText1, 'String', num2str(value));
 set(handles.file_det, 'String', filename);
 update_detector_info(hObject, eventdata, handles);
@@ -384,7 +385,7 @@ val = get(hObject,'Value');
 % Set current data to the selected data set.
 [ elementA_number ] = periodic_info( str, val);
 %[ elementA_weight ] = get_element_weight( elementA_number )
-handles.sample_para(13)= elementA_number;
+handles.sample_para.EleA_num= elementA_number;
 [ handles.sample_para ] = update_specimen_para( handles.sample_para );
 [ handles.holder_para ] = update_holder_para( handles.holder_para, handles.sample_para );
 % Save the handles structure.
@@ -416,7 +417,7 @@ val = get(hObject,'Value');
 % Set current data to the selected data set.
 [ elementB_number ] = periodic_info( str, val);
 %[ elementB_weight ] = get_element_weight( elementB_number )
-handles.sample_para(15)= elementB_number;
+handles.sample_para.EleB_num= elementB_number;
 [ handles.sample_para ] = update_specimen_para( handles.sample_para );
 [ handles.holder_para ] = update_holder_para( handles.holder_para, handles.sample_para );
 % Save the handles structure.
@@ -455,7 +456,7 @@ xray_shellA = 3;
 case 'N' 
 xray_shellA = 4;
 end
-handles.sample_para(14)= xray_shellA;
+handles.sample_para.EleA_shell= xray_shellA;
 [ handles.sample_para ] = update_specimen_para( handles.sample_para );
 [ handles.holder_para ] = update_holder_para( handles.holder_para, handles.sample_para );
 % Save the handles structure.
@@ -494,7 +495,7 @@ xray_shellB = 3;
 case 'N' 
 xray_shellB = 4;
 end
-handles.sample_para(16)= xray_shellB;
+handles.sample_para.EleB_shell= xray_shellB;
 [ handles.sample_para ] = update_specimen_para( handles.sample_para );
 [ handles.holder_para ] = update_holder_para( handles.holder_para, handles.sample_para );
 % Save the handles structure.
@@ -521,11 +522,11 @@ function edit2_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit2 as text
 %        str2double(get(hObject,'String')) returns contents of edit2 as a double
-handles.sample_para(17)=str2double(get(hObject,'String'));
+handles.sample_para.Atomic_ratio=str2double(get(hObject,'String'));
 [ handles.sample_para ] = update_specimen_para( handles.sample_para );
 [ handles.holder_para ] = update_holder_para( handles.holder_para, handles.sample_para );
 disp('Ideal atomic ratio of the specimen is ')
-disp(handles.sample_para(17))
+disp(handles.sample_para.Atomic_ratio)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -552,10 +553,10 @@ function checkbox1_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of checkbox1
 chk = get(hObject,'Value');
 if chk == 1
-    handles.sample_para(12)=0; %cal_chk=1 direct cal from exp data, !=1) compare with ideal composition
+    handles.sample_para.cal_chk=0; %cal_chk=1 direct cal from exp data, !=1) compare with ideal composition
     disp('calculation or compare using known composition')
 else
-    handles.sample_para(12)=1;
+    handles.sample_para.cal_chk=1;
     disp('composition is unknown')
 end
 [ handles.sample_para ] = update_specimen_para( handles.sample_para );
@@ -595,11 +596,11 @@ function checkbox3_Callback(hObject, eventdata, handles)
 chk = get(hObject,'Value');
 if chk == 1
     handles.chk_Shadow = -1;
-    handles.holder_para(3) = -1;
+    handles.holder_para.Cal_side_effect = -1;
     disp('Set as no beam blocking. Danger! Not a real situation!')
 else
     handles.chk_Shadow = 2;
-    handles.holder_para(3) = 2;
+    handles.holder_para.Cal_side_effect = 2;
     disp('Considering absorption by holders, real situation.')
 end
 [ cwText ] = GetCommandWindow();
@@ -615,11 +616,11 @@ function edit3_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit3 as text
 %        str2double(get(hObject,'String')) returns contents of edit3 as a double
-handles.sample_para(5)=str2double(get(hObject,'String'));
+handles.sample_para.Thickness=str2double(get(hObject,'String'));
 [ handles.sample_para ] = update_specimen_para( handles.sample_para );
 [ handles.holder_para ] = update_holder_para( handles.holder_para, handles.sample_para );
 disp('Specimen thickness is set as')
-disp(handles.sample_para(5))
+disp(handles.sample_para.Thickness)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -645,11 +646,11 @@ function edit4_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit4 as text
 %        str2double(get(hObject,'String')) returns contents of edit4 as a double
-handles.sample_para(18)=str2double(get(hObject,'String'));
+handles.sample_para.AB_Density=str2double(get(hObject,'String'));
 [ handles.sample_para ] = update_specimen_para( handles.sample_para );
 [ handles.holder_para ] = update_holder_para( handles.holder_para, handles.sample_para );
 disp('Specimen density is set as')
-disp(handles.sample_para(18))
+disp(handles.sample_para.AB_Density)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -675,9 +676,9 @@ function edit5_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit5 as text
 %        str2double(get(hObject,'String')) returns contents of edit5 as a double
-handles.sample_para(9)=str2double(get(hObject,'String'));
+handles.sample_para.POSX=str2double(get(hObject,'String'));
 disp('Specimen shift in x-direction is set as')
-disp(handles.sample_para(9))
+disp(handles.sample_para.POSX)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -703,9 +704,9 @@ function edit6_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit6 as text
 %        str2double(get(hObject,'String')) returns contents of edit6 as a double
-handles.sample_para(10)=str2double(get(hObject,'String'));
+handles.sample_para.POSY=str2double(get(hObject,'String'));
 disp('Specimen shift in y-direction is set as')
-disp(handles.sample_para(10))
+disp(handles.sample_para.POSY)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -731,9 +732,9 @@ function edit7_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit7 as text
 %        str2double(get(hObject,'String')) returns contents of edit7 as a double
-handles.sample_para(21)=str2double(get(hObject,'String'));
+handles.sample_para.DepthZ=str2double(get(hObject,'String'));
 disp('Specimen depth in z-direction is set as')
-disp(handles.sample_para(21))
+disp(handles.sample_para.DepthZ)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -759,9 +760,9 @@ function edit8_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit8 as text
 %        str2double(get(hObject,'String')) returns contents of edit8 as a double
-handles.sample_para(3)=str2double(get(hObject,'String'));
+handles.sample_para.TiltX=str2double(get(hObject,'String'));
 disp('Specimen tilt in x-direction is set as')
-disp(handles.sample_para(3))
+disp(handles.sample_para.TiltX)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -787,9 +788,9 @@ function edit9_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit9 as text
 %        str2double(get(hObject,'String')) returns contents of edit9 as a double
-handles.sample_para(4)=str2double(get(hObject,'String'));
+handles.sample_para.TiltY=str2double(get(hObject,'String'));
 disp('Specimen tilt in y-direction is set as')
-disp(handles.sample_para(4))
+disp(handles.sample_para.TiltY)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -815,9 +816,9 @@ function edit10_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit10 as text
 %        str2double(get(hObject,'String')) returns contents of edit10 as a double
-handles.sample_para(1)=str2double(get(hObject,'String'));
+handles.sample_para.Deviation_angle_X=str2double(get(hObject,'String'));
 disp('Incline angle of the specimen top surface with respect to holder x-axis is set as')
-disp(handles.sample_para(1))
+disp(handles.sample_para.Deviation_angle_X)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -843,9 +844,9 @@ function edit11_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit11 as text
 %        str2double(get(hObject,'String')) returns contents of edit11 as a double
-handles.sample_para(2)=str2double(get(hObject,'String'));
+handles.sample_para.Deviation_angle_Y=str2double(get(hObject,'String'));
 disp('Incline angle of the specimen top surface with respect to holder y-axis is set as')
-disp(handles.sample_para(2))
+disp(handles.sample_para.Deviation_angle_Y)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -870,10 +871,10 @@ function checkbox4_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox4
-EleA_num = handles.sample_para(13);
-EleA_shell = handles.sample_para(14); %1) K; 2) L; 3) M;
-EleB_num = handles.sample_para(15);
-EleB_shell = handles.sample_para(16); %1) K; 2) L; 3) M;
+EleA_num = handles.sample_para.EleA_num;
+EleA_shell = handles.sample_para.EleA_shell; %1) K; 2) L; 3) M;
+EleB_num = handles.sample_para.EleB_num;
+EleB_shell = handles.sample_para.EleB_shell; %1) K; 2) L; 3) M;
 Absorp_table (:,:,1) = xlsread ('Absorption coefficient_K.xlsx'); %K-shell cm2/g
 Absorp_table (:,:,2) = xlsread ('Absorption coefficient_L.xlsx'); %L-shell cm2/g
 Absorp_table (:,:,3) = xlsread ('Absorption coefficient_M.xlsx'); %M-shell cm2/g
@@ -889,8 +890,8 @@ else
     uB_holder = Absorp_table(42,EleB_num,EleB_shell)*Mo_density;
     disp('No filtering effect from specimen carrier, X-ray will be fully blocked.')
 end
-handles.holder_para(5)=uA_holder;
-handles.holder_para(6)=uB_holder;
+handles.holder_para.uA_holder=uA_holder;
+handles.holder_para.uB_holder=uB_holder;
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -936,8 +937,8 @@ function edit12_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit12 as text
 %        str2double(get(hObject,'String')) returns contents of edit12 as a double
-handles.holder_para(1)=str2double(get(hObject,'String'));
-disp('Ideal sample depth in the specimen carrier is set as');disp(handles.holder_para(1));
+handles.holder_para.Depth=str2double(get(hObject,'String'));
+disp('Ideal sample depth in the specimen carrier is set as');disp(handles.holder_para.Depth);
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -963,9 +964,9 @@ function edit13_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit13 as text
 %        str2double(get(hObject,'String')) returns contents of edit13 as a double
-handles.holder_para(2)=str2double(get(hObject,'String'));
+handles.holder_para.Effective_ring_diameter=str2double(get(hObject,'String'));
 disp('Open diameter of specimen carrier is set as')
-disp(handles.holder_para(2))
+disp(handles.holder_para.Effective_ring_diameter)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -991,9 +992,9 @@ function edit14_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit14 as text
 %        str2double(get(hObject,'String')) returns contents of edit14 as a double
-handles.holder_para(4)=str2double(get(hObject,'String'));
+handles.holder_para.Wall_angle=str2double(get(hObject,'String'));
 disp('The cone angle of the specimen carrier is set as')
-disp(handles.holder_para(4))
+disp(handles.holder_para.Wall_angle)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -1020,10 +1021,10 @@ function checkbox5_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of checkbox5
 chk = get(hObject,'Value');
 if chk == 1
-    handles.holder_para(7) = 1;
+    handles.holder_para.grid_chk = 1;
     disp('X-ray can be shadowed by the supporting grid.')
 else
-    handles.holder_para(7) = 0;
+    handles.holder_para.grid_chk = 0;
     disp('X-ray will not be shadowed by the supporting grid.')
 end
 [ cwText ] = GetCommandWindow();
@@ -1042,12 +1043,12 @@ str = get(hObject, 'String');
 val = get(hObject,'Value');
 switch str{val};
 case '1mmx2mm slot' 
-handles.holder_para(8)=1;
+handles.holder_para.type_grid=1;
 disp('Setup grid as 1mmx2mm slot')
 disp('Note: the length direction of the slot is set parallel to x-axis.') 
 disp('Code modification is needed for other slot orientation setup.')
 case 'Circular holes' 
-handles.holder_para(8)=0;
+handles.holder_para.type_grid=0;
 disp('Setup grid as circular holes')
 end
 [ cwText ] = GetCommandWindow();
@@ -1076,8 +1077,8 @@ function edit15_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit15 as text
 %        str2double(get(hObject,'String')) returns contents of edit15 as a double
-handles.holder_para(9)=str2double(get(hObject,'String'));
-disp('The inner diameter of a circular grid is set as');disp(handles.holder_para(9));
+handles.holder_para.open_diameter_grid=str2double(get(hObject,'String'));
+disp('The inner diameter of a circular grid is set as');disp(handles.holder_para.open_diameter_grid);
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -1197,9 +1198,9 @@ function edit16_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit16 as text
 %        str2double(get(hObject,'String')) returns contents of edit16 as a double
-handles.A_exp_counts=str2double(get(hObject,'String'));
+handles.exp.A_counts=str2double(get(hObject,'String'));
 disp('Experimental counts of element A is set as')
-disp(handles.A_exp_counts)
+disp(handles.exp.A_counts)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -1225,9 +1226,9 @@ function edit17_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit17 as text
 %        str2double(get(hObject,'String')) returns contents of edit17 as a double
-handles.B_exp_counts=str2double(get(hObject,'String'));
+handles.exp.B_counts=str2double(get(hObject,'String'));
 disp('Experimental counts of element B is set as')
-disp(handles.B_exp_counts)
+disp(handles.exp.B_counts)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -1253,9 +1254,9 @@ function edit18_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit18 as text
 %        str2double(get(hObject,'String')) returns contents of edit18 as a double
-handles.sample_para(22)=str2double(get(hObject,'String'));
+handles.sample_para.probe_Ne=str2double(get(hObject,'String'));
 disp('Probe current is set as')
-disp(handles.sample_para(22))
+disp(handles.sample_para.probe_Ne)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -1281,9 +1282,9 @@ function edit19_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit19 as text
 %        str2double(get(hObject,'String')) returns contents of edit19 as a double
-handles.sample_para(23)=str2double(get(hObject,'String'));
+handles.sample_para.acquire_time=str2double(get(hObject,'String'));
 disp('Live acquisition time is set as')
-disp(handles.sample_para(23))
+disp(handles.sample_para.acquire_time)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
 guidata(hObject,handles);
@@ -1310,16 +1311,16 @@ function pushbutton4_Callback(hObject, eventdata, handles)
 % disp('Counts for single spot is under construction')
 % [ cwText ] = GetCommandWindow();
 % set(handles.edit24, 'String', cwText);
-if (handles.sample_para(12)~=0)
+if (handles.sample_para.cal_chk~=0)
     uiwait(msgbox('Unable to calculate if composition is not known, please check specimen input file.'));
     disp('Unable to calculate if composition is not known, please check specimen input file.');
 else   
-    tiltX=handles.sample_para(3);
-    tiltY=handles.sample_para(4);
+    tiltX=handles.sample_para.TiltX;
+    tiltY=handles.sample_para.TiltY;
     disp('running...')
-    uiwait(msgbox('Click OK to run'));
-    msgbox('Running...');
-    [ output_Point, output_omega ] = single_spot_counts(tiltX, tiltY, handles.tot_Det_num, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX); % counts*1e3;
+    %uiwait(msgbox('Click OK to run'));
+    %msgbox('Running...');
+    [ output_Point, output_omega ] = single_spot_counts(tiltX, tiltY, handles.Detector, handles.sample_para, handles.holder_para, handles.SpuriousX); % counts*1e3;
     disp('Done.')
 
 [ cwText ] = GetCommandWindow();
@@ -1334,16 +1335,16 @@ function pushbutton5_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-if (handles.sample_para(12)~=0)
+if (handles.sample_para.cal_chk~=0)
     uiwait(msgbox('Unable to calculate if composition is not known, please check specimen input file.'));
     disp('Unable to calculate if composition is not known, please check specimen input file.');
 else    
-    tiltX=handles.sample_para(3);
-    tiltY=handles.sample_para(4);
+    tiltX=handles.sample_para.TiltX;
+    tiltY=handles.sample_para.TiltY;
     disp('running...')
-    uiwait(msgbox('Click OK to run'));
-    msgbox('Running...');
-    [ output_Point, output_omega ] = single_spot(tiltX, tiltY, handles.tot_Det_num, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX); % counts*1e3;
+    %uiwait(msgbox('Click OK to run'));
+    %msgbox('Running...');
+    [ output_Point, output_omega ] = single_spot(tiltX, tiltY, handles.Detector, handles.sample_para, handles.holder_para, handles.SpuriousX); % counts*1e3;
     disp('Done.')
 
 [ cwText ] = GetCommandWindow();
@@ -1359,12 +1360,12 @@ function pushbutton6_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-if (handles.A_exp_counts >0 && handles.B_exp_counts >0)
-    %disp(handles.A_exp_counts);disp(handles.B_exp_counts);
+if (handles.exp.A_counts >0 && handles.exp.B_counts >0)
+    %disp(handles.exp.A_counts);disp(handles.exp.B_counts);
     disp('running...')
-    uiwait(msgbox('Click OK to run'));
-    msgbox('Running...');
-    [handles.comp_ratio_weight_Spot, handles.comp_ratio_atomic_spot] = composition_cal_single_spot( handles.A_exp_counts, handles.B_exp_counts, handles.tot_Det_num, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX);
+    %uiwait(msgbox('Click OK to run'));
+    %msgbox('Running...');
+    [handles.comp_ratio_weight_Spot, handles.comp_ratio_atomic_spot] = composition_cal_single_spot( handles.exp, handles.Detector, handles.sample_para, handles.holder_para, handles.SpuriousX);
 else
     uiwait(msgbox('Error! No experimental data input'));
     disp('Error! No experimental data input');
@@ -1378,27 +1379,27 @@ function pushbutton7_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-if (handles.chkXY ==-1|| handles.sample_para(12)~=0)
+if (handles.chkXY ==-1|| handles.sample_para.cal_chk~=0)
     if (handles.chkXY ==-1)
         uiwait(msgbox('Unable to calculate if Tilt series direction is not set up.'));
         disp('Unable to calculate if Tilt series direction is not set up.');
     end
-    if (handles.sample_para(12)~=0)
+    if (handles.sample_para.cal_chk~=0)
         uiwait(msgbox('Unable to calculate if composition is not known, please check specimen input file.'));
         disp('Unable to calculate if composition is not known, please check specimen input file.');
     end
 else
     disp('running... It may take long time to finish...')
     uiwait(msgbox('Note: it may take long time to finish...'));
-    msgbox('Running...');
+    %msgbox('Running...');
 if (handles.chk_display == 2)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
-[handles.Al_line, handles.Ni_line, handles.Al_Abso, handles.Ni_Abso, handles.Absrp_line ] = line_search( handles.chkXY, handles.tot_Det_num, handles.search_Deg, handles.d_Deg, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX);
+[ handles.Line_result ] = line_search( handles.chkXY, handles.Detector, handles.search_Deg, handles.d_Deg, handles.sample_para, handles.holder_para, handles.SpuriousX);
 handles.chk_cal_line=2;
 end
 if (handles.chk_cal_line ==2)
-line_display( handles.chk_print, handles.chkXY, handles.tot_Det_num, handles.exp_file, handles.search_Deg, handles.Al_line, handles.Ni_line, handles.Al_Abso, handles.Ni_Abso, handles.Absrp_line, handles.sample_para );
+line_display( handles.Line_result, handles.chk_print, handles.chkXY, handles.Detector, handles.exp_file, handles.search_Deg, handles.sample_para );
 else
 disp('Warning! No calculated data to display')
 end
@@ -1414,27 +1415,27 @@ function pushbutton8_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-if (handles.chkXY ==-1 || handles.sample_para(12)~=0)
+if (handles.chkXY ==-1 || handles.sample_para.cal_chk~=0)
     if (handles.chkXY ==-1)
         uiwait(msgbox('Unable to calculate if Tilt series direction is not set up.'));
         disp('Unable to calculate if Tilt series direction is not set up.');
     end
-    if (handles.sample_para(12)~=0)
+    if (handles.sample_para.cal_chk~=0)
         uiwait(msgbox('Unable to calculate if composition is not known, please check specimen input file.'));
         disp('Unable to calculate if composition is not known, please check specimen input file.');
     end
 else
     disp('running... It may take long time to finish...')
     uiwait(msgbox('Note: it may take long time to finish...'));
-    msgbox('Running...');
+    %msgbox('Running...');
 if (handles.chk_display == 2)
-[handles.Al_line, handles.Ni_line, handles.Al_Abso, handles.Ni_Abso, handles.Absrp_line ] = line_search( handles.chkXY, handles.tot_Det_num, handles.search_Deg, handles.d_Deg, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX);
+[ handles.Line_result ] = line_search( handles.chkXY, handles.Detector, handles.search_Deg, handles.d_Deg, handles.sample_para, handles.holder_para, handles.SpuriousX);
 handles.chk_cal_line=2;
 end
 if (handles.chk_cal_line ==2)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
-line_display_Counts( handles.chk_print, handles.chkXY, handles.tot_Det_num, handles.exp_file, handles.search_Deg, handles.Al_line, handles.Ni_line, handles.Al_Abso, handles.Ni_Abso, handles.Absrp_line, handles.sample_para );
+line_display_Counts( handles.Line_result, handles.chk_print, handles.chkXY, handles.Detector, handles.exp_file, handles.search_Deg, handles.sample_para );
 else
 disp('Warning! No calculated data to display')
 end
@@ -1461,19 +1462,19 @@ if (handles.chkXY == -1 || isempty(handles.exp_file))
         disp('Error! No experimental file input')
     end
 else
-    if (handles.sample_para(12)==0)
+    if (handles.sample_para.cal_chk==0)
         uiwait(msgbox('Known composition! Deviation of prediction will be compared instead.'));
         disp('Known composition! Deviation of prediction will be compared instead.');
     end
 disp('running... It may take long time to finish...')
 uiwait(msgbox('Note: it may take long time to finish...'));
-msgbox('Running...');
+%msgbox('Running...');
 if (handles.chk_display == 2)
 [ cwText ] = GetCommandWindow();
 set(handles.edit24, 'String', cwText);
-[handles.comp_ratio_out] = composition_cal( handles.exp_file, handles.tot_Det_num, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX, handles.chkXY );
-    if (handles.sample_para(12)==0)
-       [handles.comp_A_out, handles.comp_B_out] = composition_cal_absolute( handles.exp_file, handles.tot_Det_num, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX, handles.chkXY );
+[handles.comp_ratio_out] = composition_cal( handles.exp_file, handles.Detector, handles.sample_para, handles.holder_para, handles.SpuriousX, handles.chkXY );
+    if (handles.sample_para.cal_chk==0)
+       [handles.comp_A_out, handles.comp_B_out] = composition_cal_absolute( handles.exp_file, handles.Detector, handles.sample_para, handles.holder_para, handles.SpuriousX, handles.chkXY );
        handles.chk_cal_comp=2;
     else
        handles.chk_cal_comp=1; 
@@ -1499,18 +1500,18 @@ function pushbutton10_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 disp('running... It may take long time to finish...')
 uiwait(msgbox('Note: it may take long time to finish...'));
-msgbox('Running...');
+%msgbox('Running...');
 if (handles.chk_display == 2)
-[ cwText ] = GetCommandWindow();
-set(handles.edit24, 'String', cwText);
-[ handles.Al_map, handles.Ni_map, handles.ratio_map ] = XY_search( handles.tot_Det_num, handles.search_Deg_2D, handles.d_Deg_2D, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX);
-handles.chk_cal_tilt2D=2;
+    [ cwText ] = GetCommandWindow();
+    set(handles.edit24, 'String', cwText);
+    [ handles.Tilt_map ] = XY_search( handles.Detector, handles.search_Deg_2D, handles.d_Deg_2D, handles.sample_para, handles.holder_para, handles.SpuriousX);
+    handles.chk_cal_tilt2D=2;
 end
+
 if (handles.chk_cal_tilt2D ==2)
-XY_display2_solidAngle( handles.chk_print, handles.Al_map, handles.Ni_map, handles.ratio_map, handles.tot_Det_num, handles.angle_search, handles.sample_para, handles.search_Deg_2D, handles.d_Deg_2D );
-%XY_display2_counts( handles.chk_print, handles.Al_map, handles.Ni_map, handles.ratio_map, handles.tot_Det_num, handles.angle_search, handles.sample_para, handles.search_Deg_2D, handles.d_Deg_2D );
+    XY_display2_solidAngle( handles.Tilt_map, handles.chk_print, handles.Detector, handles.sample_para, handles.search_Deg_2D, handles.d_Deg_2D );
 else
-disp('No calculated data to display')
+    disp('No calculated data to display')
 end
 disp('Done.')
 guidata(hObject,handles)
@@ -1524,18 +1525,18 @@ function pushbutton11_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 disp('running... It may take long time to finish...')
 uiwait(msgbox('Note: it may take long time to finish...'));
-msgbox('Running...');
+%msgbox('Running...');
 if (handles.chk_display == 2)
-[ cwText ] = GetCommandWindow();
-set(handles.edit24, 'String', cwText);
-[ handles.Al_map, handles.Ni_map, handles.ratio_map ] = XY_search( handles.tot_Det_num, handles.search_Deg_2D, handles.d_Deg_2D, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX);
-handles.chk_cal_tilt2D=2;
+    [ cwText ] = GetCommandWindow();
+    set(handles.edit24, 'String', cwText);
+    [ handles.Tilt_map ] = XY_search( handles.Detector, handles.search_Deg_2D, handles.d_Deg_2D, handles.sample_para, handles.holder_para, handles.SpuriousX);
+    handles.chk_cal_tilt2D=2;
 end
+
 if (handles.chk_cal_tilt2D ==2)
-%XY_display2_solidAngle( handles.chk_print, handles.Al_map, handles.Ni_map, handles.ratio_map, handles.tot_Det_num, handles.angle_search, handles.sample_para, handles.search_Deg_2D, handles.d_Deg_2D );
-XY_display2_counts( handles.chk_print, handles.Al_map, handles.Ni_map, handles.ratio_map, handles.tot_Det_num, handles.angle_search, handles.sample_para, handles.search_Deg_2D, handles.d_Deg_2D );
+    XY_display2_counts( handles.Tilt_map, handles.chk_print, handles.Detector, handles.sample_para, handles.search_Deg_2D, handles.d_Deg_2D );
 else
-disp('No calculated data to display')
+    disp('No calculated data to display')
 end
 disp('Done.')
 [ cwText ] = GetCommandWindow();
@@ -1549,17 +1550,18 @@ function pushbutton12_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 disp('running... It may take long time to finish...')
 uiwait(msgbox('Note: it may take long time to finish...'));
-msgbox('Running...');
+%msgbox('Running...');
 if (handles.chk_display == 2)
-[ cwText ] = GetCommandWindow();
-set(handles.edit24, 'String', cwText);
-[ handles.Al_map_pos, handles.Ni_map_pos, handles.ratio_map_pos ] = positionXY_search( handles.tot_Det_num, handles.search_Range_2D, handles.d_Range_2D, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX);
-handles.chk_cal_shift2D=2;
+    [ cwText ] = GetCommandWindow();
+    set(handles.edit24, 'String', cwText);
+    [ handles.Shift_map ] = positionXY_search( handles.Detector, handles.search_Range_2D, handles.d_Range_2D, handles.sample_para, handles.holder_para, handles.SpuriousX);
+    handles.chk_cal_shift2D=2;
 end
+
 if (handles.chk_cal_shift2D ==2)
-PositionXY_display2( handles.chk_print, handles.Al_map_pos, handles.Ni_map_pos, handles.ratio_map_pos, handles.tot_Det_num, handles.angle_search, handles.sample_para, handles.search_Range_2D, handles.d_Range_2D );
+    PositionXY_display2( handles.Shift_map, handles.chk_print, handles.Detector, handles.sample_para, handles.search_Range_2D, handles.d_Range_2D );
 else
-disp('No calculated data to display')
+    disp('No calculated data to display')
 end
 disp('Done.')
 [ cwText ] = GetCommandWindow();
@@ -1574,17 +1576,18 @@ function pushbutton13_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 disp('running... It may take long time to finish...')
 uiwait(msgbox('Note: it may take long time to finish...'));
-msgbox('Running...');
+%msgbox('Running...');
 if (handles.chk_display == 2)
-[ cwText ] = GetCommandWindow();
-set(handles.edit24, 'String', cwText);
-[ handles.Al_map_pos, handles.Ni_map_pos, handles.ratio_map_pos ] = positionXY_search( handles.tot_Det_num, handles.search_Range_2D, handles.d_Range_2D, handles.sample_para, handles.holder_para, handles.holder_frame_para, handles.angle_search, handles.SpuriousX);
-handles.chk_cal_shift2D=2;
+    [ cwText ] = GetCommandWindow();
+    set(handles.edit24, 'String', cwText);
+    [ handles.Shift_map ] = positionXY_search( handles.Detector, handles.search_Range_2D, handles.d_Range_2D, handles.sample_para, handles.holder_para, handles.SpuriousX);
+    handles.chk_cal_shift2D=2;
 end
+
 if (handles.chk_cal_shift2D ==2)
-PositionXY_display2_counts( handles.chk_print, handles.Al_map_pos, handles.Ni_map_pos, handles.ratio_map_pos, handles.tot_Det_num, handles.angle_search, handles.sample_para, handles.search_Range_2D, handles.d_Range_2D );
+    PositionXY_display2_counts( handles.Shift_map, handles.chk_print, handles.Detector, handles.sample_para, handles.search_Range_2D, handles.d_Range_2D );
 else
-disp('No calculated data to display')
+    disp('No calculated data to display')
 end
 disp('Done.')
 [ cwText ] = GetCommandWindow();
@@ -1823,52 +1826,52 @@ function pushbutton16_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 [filename_Sinput, pathname] = uigetfile({'*.xlsx'},'Update specimen information from file');
 if (filename_Sinput ~=0)
-%[ handles.detector_para, handles.tot_Det_num ] = Detector_input( filename );
-%[ handles.angle_search, handles.detector_para] = Detector_setup( handles.detector_para, handles.dAngle );
+%[ handles.detector_para, handles.Detector.tot_Det_num ] = Detector_input( filename );
+%[ handles.Detector.angle_search, handles.detector_para] = Detector_setup( handles.detector_para, handles.dAngle );
 %set(handles.staticText1, 'String', num2str(value));
 %set(handles.file_det, 'String', filename);
 %update_detector_info(hObject, eventdata, handles);
 
 %demo file filename_Sinput='specimen_Ni3Al_demo_X.xlsx';
 [ handles.sample_para ] = Specimen_setup( filename_Sinput, handles.t_chk );
-if (handles.sample_para(12)~=1)
+if (handles.sample_para.cal_chk~=1)
     set(handles.checkbox1,'Value',1);
-    set(handles.edit2, 'String', num2str(handles.sample_para(17)));
+    set(handles.edit2, 'String', num2str(handles.sample_para.Atomic_ratio));
 end
-set(handles.edit3, 'String', num2str(handles.sample_para(5)));
+set(handles.edit3, 'String', num2str(handles.sample_para.Thickness));
 
 handles.chk_Shadow = 2;
 set(handles.checkbox3,'Value',0);
 
-set(handles.edit4, 'String', num2str(handles.sample_para(18)));
-set(handles.edit5, 'String', num2str(handles.sample_para(9)));
-set(handles.edit6, 'String', num2str(handles.sample_para(10)));
-set(handles.edit7, 'String', num2str(handles.sample_para(21)));
-set(handles.edit8, 'String', num2str(handles.sample_para(3)));
-set(handles.edit9, 'String', num2str(handles.sample_para(4)));
-set(handles.edit10, 'String', num2str(handles.sample_para(1)));
-set(handles.edit11, 'String', num2str(handles.sample_para(2)));
-set(handles.edit18, 'String', num2str(handles.sample_para(22)));
-set(handles.edit19, 'String', num2str(handles.sample_para(23)));
-set(handles.popupmenu1, 'Value', handles.sample_para(13)-2);
-set(handles.popupmenu2, 'Value', handles.sample_para(15)-2);
-set(handles.popupmenu3, 'Value', handles.sample_para(14));
-set(handles.popupmenu4, 'Value', handles.sample_para(16));
+set(handles.edit4, 'String', num2str(handles.sample_para.AB_Density));
+set(handles.edit5, 'String', num2str(handles.sample_para.POSX));
+set(handles.edit6, 'String', num2str(handles.sample_para.POSY));
+set(handles.edit7, 'String', num2str(handles.sample_para.DepthZ));
+set(handles.edit8, 'String', num2str(handles.sample_para.TiltX));
+set(handles.edit9, 'String', num2str(handles.sample_para.TiltY));
+set(handles.edit10, 'String', num2str(handles.sample_para.Deviation_angle_X));
+set(handles.edit11, 'String', num2str(handles.sample_para.Deviation_angle_Y));
+set(handles.edit18, 'String', num2str(handles.sample_para.probe_Ne));
+set(handles.edit19, 'String', num2str(handles.sample_para.acquire_time));
+set(handles.popupmenu1, 'Value', handles.sample_para.EleA_num-2);
+set(handles.popupmenu2, 'Value', handles.sample_para.EleB_num-2);
+set(handles.popupmenu3, 'Value', handles.sample_para.EleA_shell);
+set(handles.popupmenu4, 'Value', handles.sample_para.EleB_shell);
 
 if (strcmp (filename_Sinput, 'specimen_Ni3Al_demo.xlsx')) %demo mode, has Mo slot grid, setup here
-    handles.holder_para(7)= 1; %grid_chk(Shadow by sample grid? 1-Yes 2-No)
-    handles.holder_para(8)= 1; %type_grid(standard 1x2 slot? (1=yes others no))
-    handles.holder_para(9)= 0; %open_diameter_grid(If others, input grid open diameter (in mm))
+    handles.holder_para.grid_chk= 1; %grid_chk(Shadow by sample grid? 1-Yes 2-No)
+    handles.holder_para.type_grid= 1; %type_grid(standard 1x2 slot? (1=yes others no))
+    handles.holder_para.open_diameter_grid= 0; %open_diameter_grid(If others, input grid open diameter (in mm))
     set(handles.checkbox5,'Value',1);
     handles.exp_file='Exp_data_Ni3Al_demo_X.xlsx';
-    handles.A_exp_counts=12691; %total counts
-    handles.B_exp_counts=83422;
-    set(handles.edit16, 'String', num2str(handles.A_exp_counts));
-    set(handles.edit17, 'String', num2str(handles.B_exp_counts));
+    handles.exp.A_counts=12691; %total counts
+    handles.exp.B_counts=83422;
+    set(handles.edit16, 'String', num2str(handles.exp.A_counts));
+    set(handles.edit17, 'String', num2str(handles.exp.B_counts));
     disp('Demo Ni3Al specimen info is loaded, have fun!')
     disp ('Please find details in "A Numerical Model for Multiple Detector')
-    disp ('Energy Dispersive X-ray Spectroscopy in the Transmission Electron')
-    disp ('Microscope", Ultramicroscopy, 2016, in press');
+    disp ('Energy Dispersive X-ray Spectroscopy in the Transmission')
+    disp ('Electron Microscope", Ultramicroscopy, 164(2016)51-61.');
     uiwait(msgbox('Demo Ni3Al specimen is loaded, have fun!'));
 end
 set(handles.text101, 'String', filename_Sinput);

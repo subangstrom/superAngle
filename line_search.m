@@ -1,14 +1,20 @@
-function [ Al_line, Ni_line, Al_Abso, Ni_Abso, Absrp_line ] = line_search( chkXY, tot_Det_num, search_Deg, d_Deg, sample_para, holder_para, holder_frame_para, angle_search, SpuriousX)
+function [ Result ] = line_search( chkXY, Detector, search_Deg, d_Deg, sample_para, holder_para, SpuriousX)
 %1D tilt series calculation
 %Weizong Xu, March, 2015, wxu4@ncsu.edu
 
+tot_Det_num=Detector.tot_Det_num;
+angle_search=Detector.angle_search;
 if (abs(chkXY-2)<0.0001)
+    disp('Search along Y-tilt direction')
     for i=1:tot_Det_num
-        [Al_line(:,:,i), Ni_line(:,:,i)] = TiltY_search_parallel(search_Deg, d_Deg, sample_para, holder_para, holder_frame_para, angle_search(:,:,i), SpuriousX(:,i));
+        disp(['Working on Detector #',num2str(i)]);
+        [Al_line(:,:,i), Ni_line(:,:,i)] = TiltY_search_parallel(search_Deg, d_Deg, sample_para, holder_para, angle_search(:,:,i), SpuriousX(:,i));
     end
 else
+    disp('Search along X-tilt direction')
     for i=1:tot_Det_num
-        [Al_line(:,:,i), Ni_line(:,:,i)] = TiltX_search_parallel(search_Deg, d_Deg, sample_para, holder_para, holder_frame_para, angle_search(:,:,i), SpuriousX(:,i), chkXY);
+        disp(['Working on Detector #',num2str(i)]);
+        [Al_line(:,:,i), Ni_line(:,:,i)] = TiltX_search_parallel(search_Deg, d_Deg, sample_para, holder_para, angle_search(:,:,i), SpuriousX(:,i), chkXY);
     end
 end
 
@@ -24,6 +30,9 @@ for i=1:tot_Det_num
 end
 
 
-
-
+Result.A_line=Al_line;
+Result.B_line=Ni_line;
+Result.A_Abso=Al_Abso;
+Result.B_Abso=Ni_Abso;
+Result.Absrp_line=Absrp_line;
 end

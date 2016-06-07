@@ -1,12 +1,19 @@
-function [ ] = line_display_Counts( chk_print, chkXY, tot_Det_num, exp_file, search_Deg, A_line, B_line, A_Abso, B_Abso, Absrp_line, sample_para )
+function [ ] = line_display_Counts( line_search_Result, chk_print, chkXY, Detector, exp_file, search_Deg, sample_para )
 %Display 1D plot for correction coefficient due to X-ray absorption and/or holder shadowing
 %The result will also be compared with the experiment data.
 %Weizong Xu, wxu4@ncsu.edu, April 2015
+
+A_line=line_search_Result.A_line;
+B_line=line_search_Result.B_line;
+A_Abso=line_search_Result.A_Abso;
+B_Abso=line_search_Result.B_Abso;
+Absrp_line=line_search_Result.Absrp_line;
 
 A_lineall_counts(:,1)=A_line(:,1,1);
 A_lineall_counts(:,2)=A_line(:,2,1);
 B_lineall_counts(:,1)=B_line(:,1,1);
 B_lineall_counts(:,2)=B_line(:,2,1);
+tot_Det_num=Detector.tot_Det_num;
 for i=2:tot_Det_num
     A_lineall_counts(:,2)=A_lineall_counts(:,2)+A_line(:,2,i);
     B_lineall_counts(:,2)= B_lineall_counts(:,2)+B_line(:,2,i);
@@ -22,22 +29,23 @@ else
     xaxis='Tilt X (deg)';
 end
 
-sym_A = get_element_name(sample_para(13),sample_para(14));
-sym_B = get_element_name(sample_para(15),sample_para(16));
+sym_A = get_element_name(sample_para.EleA_num,sample_para.EleA_shell);
+sym_B = get_element_name(sample_para.EleB_num,sample_para.EleB_shell);
 
-k_AB_ideal = sample_para(20); % ideal k ratio in for composition in wt%
-atomic_ratio_AB = sample_para(17);
-Atomic_weight_A = get_element_weight(sample_para(13));
-Atomic_weight_B = get_element_weight(sample_para(15));
+k_AB_ideal = sample_para.k_AB_ideal; % ideal k ratio in for composition in wt%
+atomic_ratio_AB = sample_para.Atomic_ratio;
+Atomic_weight_A = get_element_weight(sample_para.EleA_num);
+Atomic_weight_B = get_element_weight(sample_para.EleB_num);
 k_AB_ideal_atomic = k_AB_ideal/Atomic_weight_A*Atomic_weight_B;
 Int_ratio_factor= atomic_ratio_AB/k_AB_ideal_atomic;
+
 for i=1:tot_Det_num
     Absrp_line(:,2,i) = Absrp_line(:,2,i)*Int_ratio_factor;
 end
     Absrp_lineall(:,2) = Absrp_lineall(:,2)*Int_ratio_factor;
 
     
-[ convert_factor_A,convert_factor_B, tempA, tempB ] = absolute_scale_factor(sample_para);
+[ convert_factor_A,convert_factor_B, ~, ~ ] = absolute_scale_factor(sample_para);
 A_line_count(:,1,:) = A_line(:,1,:);
 A_line_count(:,2,:) = A_line(:,2,:)*convert_factor_A;
 B_line_count(:,1,:) = B_line(:,1,:);
@@ -72,7 +80,7 @@ for i=1:tot_Det_num
 end
 hold off;
 
-if (sample_para(22)>0 && sample_para(23)>0) %must have value of tau and e current
+if (sample_para.probe_Ne>0 && sample_para.acquire_time>0) %must have value of tau and e current
 subplot(2,2,3)
 hold on;
 for i=1:tot_Det_num
@@ -93,6 +101,10 @@ hold on;
 Plot2Dim_factor(B_line_count_all, ['Calculated counts of ', sym_B, ' X-ray'], 3, xaxis,  'Counts', c_select(i+1,:),1);
 hold off;
 end %end of tau and current check
+if (chk_print==1)
+print('Line_display_counts','-dpng','-r300')
+end
+
 
 figure;
 %set(gca,'FontSize',18)
@@ -109,11 +121,14 @@ legend_str{i+1}='Sum';
 legend(legend_str,'Location','northoutside','Orientation','horizontal');
 hold off;
 box on;
-    
+if (chk_print==1)
+print('Line_display_ratio','-dpng','-r300')
+end
+
 %Data input from xlsx file e.g. 'exp_B3A_wedge.xlsx'; 
 %if file exist -->  tot_Det_num_in > 0
 [ A_exp, A_exp_norm, max_A_exp, B_exp, B_exp_norm, max_B_exp, ratio_exp, ratio_exp_all, tot_Det_num_in] = read_exp_data( exp_file );
-if (tot_Det_num_in == 0 || sample_para(22)<=0 || sample_para(23)<=0)
+if (tot_Det_num_in == 0 || sample_para.probe_Ne<=0 || sample_para.acquire_time<=0)
     return; % no further experimental comparison, return
 end
 
@@ -200,7 +215,9 @@ figure;
     axis([-search_Deg search_Deg y_min_Ni y_max_Ni])
     hold off;
     box on;
-
+    if (chk_print==1)
+    print('Line_display_counts_compare','-dpng','-r300')
+    end
 
 
     figure;
@@ -231,6 +248,8 @@ figure;
 
     box on;
     hold off;
-
+    if (chk_print==1)
+    print('Line_display_ratio_compare','-dpng','-r300')
+    end
 
 end

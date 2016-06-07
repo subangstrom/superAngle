@@ -1,22 +1,16 @@
 function [ ] = add_error_counts(color_code, input, er_type, input2)
 %Add error bar
-%Weizong Feb. 2016
+%compatible with Matlab 2014a/earlier or later version (with new plot engine)
+%Weizong June. 2016
 
 color_code=color_code*0.5;
 line_width=1.5;
 tick_size=30;
 
 if (er_type==1) %error from counts
-x=input(:,1);
-y=input(:,2);
-e=3*sqrt(y);
-%p1=errorbar(x,y,e,'k');
-p1=errorbar(x,y,e);
-errorbar_tick(p1,tick_size);
-set(p1, 'linestyle', 'none');
-set (p1, 'LineWidth',line_width);
-set (p1, 'color',color_code);
-%set(p1, 'marker', '+');
+    x=input(:,1);
+    y=input(:,2);
+    e=3*sqrt(y);
 end
 
 if (er_type==2) %error from total counts
@@ -31,13 +25,13 @@ if (er_type==2) %error from total counts
         e=e+e_temp.^2; %z=ax+-by error_total=sqrt(a^2*ex^2+b^2*ey^2)
     end
     e=sqrt(e);
-%p1=errorbar(x,y,e,'k');
-p1=errorbar(x,y,e);
-errorbar_tick(p1,tick_size);
-set(p1, 'linestyle', 'none');
-set (p1, 'LineWidth',line_width);
-set (p1, 'color',color_code);
-%set(p1, 'marker', '+');
+% %p1=errorbar(x,y,e,'k');
+% p1=errorbar(x,y,e);
+% errorbar_tick(p1,tick_size);
+% set(p1, 'linestyle', 'none');
+% set (p1, 'LineWidth',line_width);
+% set (p1, 'color',color_code);
+% %set(p1, 'marker', '+');
 end
 
 if (er_type==3) %error from ratio
@@ -48,13 +42,13 @@ if (er_type==3) %error from ratio
     e_B=3*sqrt(y_B);
     y=y_A./y_B;
     e=y.*sqrt((e_A./y_A).^2+(e_B./y_B).^2);  %error divided  
-%p1=errorbar(x,y,e,'k');
-p1=errorbar(x,y,e);
-errorbar_tick(p1,tick_size);
-set(p1, 'linestyle', 'none');
-set (p1, 'LineWidth',line_width);
-set (p1, 'color',color_code);
-%set(p1, 'marker', '+');
+% %p1=errorbar(x,y,e,'k');
+% p1=errorbar(x,y,e);
+% errorbar_tick(p1,tick_size);
+% set(p1, 'linestyle', 'none');
+% set (p1, 'LineWidth',line_width);
+% set (p1, 'color',color_code);
+% %set(p1, 'marker', '+');
 end
 
 
@@ -82,13 +76,26 @@ if (er_type==4) %error from ratio
     y=y_A./y_B;
     e=y.*sqrt((e_A./y_A).^2+(e_B./y_B).^2);    
 %p1=errorbar(x,y,e,'k');
-p1=errorbar(x,y,e);
-errorbar_tick(p1,tick_size);
-set(p1, 'linestyle', 'none');
-set (p1, 'LineWidth',line_width);
-set (p1, 'color',color_code);
+% p1=errorbar(x,y,e);
+% errorbar_tick(p1,tick_size);
+% set(p1, 'linestyle', 'none');
+% set (p1, 'LineWidth',line_width);
+% set (p1, 'color',color_code);
 %set(p1, 'marker', '+');
 end
 
+v_a = version('-release');
+v_b = str2double(v_a(regexp(v_a,'\d')));
+if (v_b>2014 ||  strcmp( v_a, '2014b')==1)
+	p1=terrorbar(x,y,e,tick_size/20);
+else
+    p1=errorbar(x,y,e);
+    errorbar_tick(p1,tick_size);    
+    set(p1, 'linestyle', 'none');
+end
+set (p1, 'LineWidth',line_width);
+set (p1, 'color',color_code);
+%set(p1, 'marker', '+');
+    
 end
 

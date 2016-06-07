@@ -1,0 +1,7 @@
+SuperAngle v1.30
+1. Bug fix: cannot change dAngle value
+2. Bug fix: Error bar display in Matlab 2014b and later version
+3. Typo: ``Diameter'' has changed to ``Radius'' in Detector Information.
+4. Enable parallel computing
+5. Enable figure output for Tilt series calculation
+6. Re-structured code for new function incorporation in the future.

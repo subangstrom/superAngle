@@ -1,19 +1,21 @@
-function [ output, output_omega ] = single_spot( TiltX, TiltY, tot_Det_num, sample_para, holder_para, holder_frame_para, angle_search, SpuriousX)
+function [ output, output_omega ] = single_spot( TiltX, TiltY, Detector, sample_para, holder_para, SpuriousX)
 %Omega calculation at single spot.
 %Weizong Xu, Feb. 2015, wxu4@ncsu.edu
 
-    sample_para(1,3)=TiltX;
-    sample_para(1,4)=TiltY;
+    tot_Det_num=Detector.tot_Det_num;
+    angle_search=Detector.angle_search;
+    sample_para.TiltX=TiltX;
+    sample_para.TiltY=TiltY;
     A_Pout=zeros(tot_Det_num,1);
     B_Pout=zeros(tot_Det_num,1);
     Pratio=zeros(tot_Det_num,1);
     output=zeros(tot_Det_num+1,4);
     output_omega=zeros(tot_Det_num+1,4);
     output_omega_deteff=zeros(tot_Det_num+1,4);
-    EleA_num = sample_para(13);
-    EleA_shell = sample_para(14);
-    EleB_num = sample_para(15);
-    EleB_shell = sample_para(16);
+    EleA_num = sample_para.EleA_num;
+    EleA_shell = sample_para.EleA_shell;
+    EleB_num = sample_para.EleB_num;
+    EleB_shell = sample_para.EleB_shell;
     
     %Get detector efficiency;
     temp = Excel_input ('Atomic_info.xlsx');
@@ -25,7 +27,7 @@ function [ output, output_omega ] = single_spot( TiltX, TiltY, tot_Det_num, samp
     [ Det_eff_A, Det_eff_B ] = get_Det_eff( EleA_energy, EleB_energy, 'SDD_windowless_efficiency.xlsx' );
 
     for i=1:tot_Det_num;
-        [A_Pout(i), B_Pout(i)] = Point_search(sample_para, holder_para, holder_frame_para, angle_search(:,:,i), SpuriousX(:,i));
+        [A_Pout(i), B_Pout(i)] = Point_search(sample_para, holder_para, angle_search(:,:,i), SpuriousX(:,i));
         Pratio(i)= A_Pout(i)/B_Pout(i); %A - Al; B - Ni; 
         output (i,:) = [i, A_Pout(i)/sum(angle_search(:,5,i)),B_Pout(i)/sum(angle_search(:,5,i)),Pratio(i)]; % counts*1e3;
         output_omega (i,:) = [i, A_Pout(i),B_Pout(i),Pratio(i)]; % counts*1e3;

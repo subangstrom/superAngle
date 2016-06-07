@@ -4,22 +4,22 @@ function [ H_angle_out ] = Holder_carrier_shadow_up_2(sample_para, holder_para, 
 %This code deals with such senario.
 %Weizong Xu, April, 2015, wxu4@ncsu.edu
 
-TiltX = sample_para(3)*pi/180;
-TiltY = sample_para(4)*pi/180; 
-HolderX = sample_para(9);
-HolderY = sample_para(10);
+TiltX = sample_para.TiltX*pi/180;
+TiltY = sample_para.TiltY*pi/180; 
+HolderX = sample_para.POSX;
+HolderY = sample_para.POSY;
 
 
 %depth = sample_para(21)/(cos(TiltX)*cos(TiltY)); %e.g. correct depth increment during XY tilt
 %H_coor = [0, 0, depth];
 
 %H_center = [HolderX, HolderY, depth];
-depth = sample_para(21);
-H_size = holder_para(2)*0.5; %e.g. 2.5*0.5 mm
-chk = holder_para(3);
-Alpha = holder_para(4)*pi/180; %Wall_angle convert to degree
-uAl_K_Be = holder_para(5);
-uNi_K_Be = holder_para(6);
+depth = sample_para.DepthZ;
+H_size = holder_para.Effective_ring_diameter*0.5; %e.g. 2.5*0.5 mm
+chk = holder_para.Cal_side_effect;
+Alpha = holder_para.Wall_angle*pi/180; %Wall_angle convert to degree
+uAl_K_Be = holder_para.uA_holder;
+uNi_K_Be = holder_para.uB_holder;
 
 k=1/tan(Alpha);
 Cone_P(1)=-HolderX;

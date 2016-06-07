@@ -6,14 +6,14 @@ function [ H_angle_out ] = Holder_grid_shadow_up(sample_para, holder_para, angle
 
 grid_align_X=0;
 grid_align_Y=0;
-H_depth = sample_para(21)-holder_para(1); %ideal depth for Titan 0.22mm
-if (holder_para(7)==1) %chk if there is a grid on sample
+H_depth = sample_para.DepthZ-holder_para.Depth; %ideal depth for Titan 0.22mm
+if (holder_para.grid_chk==1) %chk if there is a grid on sample
     depth=H_depth;
     %depth =0.05;
     %H_size = holder_para(9)*0.5; %grid radius e.g. 2.5*0.5 mm
     
-    if (holder_para(8)~=1)
-        H_size = holder_para(9);
+    if (holder_para.type_grid~=1)
+        H_size = holder_para.open_diameter_grid;
     else
         H_size = 1.0*0.5; %0.5 shortest distance of the 1x2 slot grid
     end
@@ -23,16 +23,16 @@ if (holder_para(7)==1) %chk if there is a grid on sample
     end
 
 else %if not, set a large grid to pre-shadow impossible beam(speed up cal)
-    depth = sample_para(21);
+    depth = sample_para.DepthZ;
     H_size = 10; %a large number than holder size
 end
     
 
 
-TiltX = sample_para(3)*pi/180;
-TiltY = sample_para(4)*pi/180;
-HolderX = sample_para(9)-grid_align_X;
-HolderY = sample_para(10)-grid_align_Y;
+TiltX = sample_para.TiltX*pi/180;
+TiltY = sample_para.TiltY*pi/180;
+HolderX = sample_para.POSX-grid_align_X;
+HolderY = sample_para.POSY-grid_align_Y;
 
 
 %depth = sample_para(21)/(cos(TiltX)*cos(TiltY)); %e.g. correct depth increment during XY tilt
@@ -95,7 +95,7 @@ for i=1:Angle_size
                     H_xyz(n,3) = H_z;
                 else
                     
-                   if (holder_dist <= 1.0 && holder_para(8)==1 )  %2.0*0.5; max open diameter of 1x2 slot
+                   if (holder_dist <= 1.0 && holder_para.type_grid==1 )  %2.0*0.5; max open diameter of 1x2 slot
                         
                       Grid_pos = [H_x, H_y, H_z] * RotXY_rev; 
                       chk_pos = Grid_pos-H_center_rev;

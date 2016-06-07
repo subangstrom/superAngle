@@ -5,8 +5,8 @@ function [S_n] = sample_normal(S_n0,sample_para)
 %anglesearch [theta,phi]
 
 %Set specimen
-Deviation_angle_X = sample_para(1); %angle between top surface and x-axis of the holder
-Deviation_angle_Y = sample_para(2); %angle between top surface and y-axis of the holder
+Deviation_angle_X = sample_para.Deviation_angle_X; %angle between top surface and x-axis of the holder
+Deviation_angle_Y = sample_para.Deviation_angle_Y; %angle between top surface and y-axis of the holder
 
 %=======Reference========
 %   Geometry in Titan
@@ -21,8 +21,8 @@ Deviation_angle_Y = sample_para(2); %angle between top surface and y-axis of the
 %            
 %========================
 
-TiltX = sample_para(3); %deg temp one, will incoporate into loops
-TiltY = sample_para(4);
+TiltX = sample_para.TiltX; %deg temp one, will incoporate into loops
+TiltY = sample_para.TiltY;
 
 
 %probe_arriving --> [0, 0, t];

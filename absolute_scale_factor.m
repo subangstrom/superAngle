@@ -7,15 +7,15 @@ Xray_table (:,:,2) = temp(4:6,:); % L-shell xray energy, crossection, flurence y
 Xray_table (:,:,3) = temp(7:9,:); % M-shell xray energy, crossection, flurence yield 
 
 %EleA_num=13; EleA_shell=1;EleB_num=28;EleB_shell=1;Atomic_ratio=1/3;
-EleA_num=sample_para(13);
-EleA_shell=sample_para(14);
-EleB_num=sample_para(15);
-EleB_shell=sample_para(16);
-Atomic_ratio=sample_para(17);
-t=sample_para(5)*1e-9; %thickness
-p=sample_para(18)*1e3; %density
-Ne = sample_para(22);
-tau = sample_para(23);
+EleA_num=sample_para.EleA_num;
+EleA_shell=sample_para.EleA_shell;
+EleB_num=sample_para.EleB_num;
+EleB_shell=sample_para.EleB_shell;
+Atomic_ratio=sample_para.Atomic_ratio;
+t=sample_para.Thickness*1e-9; %thickness
+p=sample_para.AB_Density*1e3; %density
+Ne = sample_para.probe_Ne;
+tau = sample_para.acquire_time;
 
 if (Ne<=1)
     disp('Warning: No electron current input for counts calculation!')

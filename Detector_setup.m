@@ -1,13 +1,13 @@
-function [ angle_search, detector_para] = Detector_setup( detector_para, dAngle )
+function [ Detector] = Detector_setup( Detector )
 % Calculate x-ray with eular angles (in sphere coordinate) that enters
 % the EDS detectors
 % Detector parameters must be input from file
 % Copyright by Weizong Xu, email to wxu4@ncsu.edu for any info and questions. 
 % March 2015
 
-tot_Det_num = max (detector_para(:,1));
-dphi=dAngle;
-dtheta=dAngle;
+tot_Det_num = Detector.tot_Det_num;
+dphi=Detector.dAngle;
+dtheta=Detector.dAngle;
 %num_theta= double(int16(90.0/dAngle));
 max_size=0;
 angle_all=zeros(360/dphi*90/dtheta/4,5,tot_Det_num);
@@ -35,12 +35,12 @@ for i=1:tot_Det_num
     %     225deg     315deg
     %            
     %========================
-    Det_label = detector_para (i,2);
-    Det_dist = detector_para (i,3);
-    Det_takeoff = detector_para (i,4);
-    Det_azimuth = detector_para (i,5);
-    Det_tilt = detector_para (i,6);
-    Det_radius = detector_para (i,7);
+    %Det_label = detector_para.Dector(i);
+    Det_dist = Detector.detector_para.Distance(i);
+    Det_takeoff = Detector.detector_para.Takeoff_angle(i);
+    Det_azimuth = Detector.detector_para.Azimuth_angle(i);
+    Det_tilt = Detector.detector_para.Self_tilt(i);
+    Det_radius = Detector.detector_para.Detector_radius(i);
 
     %*******Detector orientation calculation*******
     %[det_coor, D_n] = Get_Det_Coor(Det_dist, Det_takeoff, Det_azimuth, Det_tilt);
@@ -64,7 +64,7 @@ for i=1:tot_Det_num
     %theta range from (0,pi/2)
     %phi range from (0,2pi)
     [Det_angle_search, det_disp, Detector_solid_angle] = Det_collect_search2(det_coor, D_n, dtheta, dphi, Det_radius);
-    detector_para (i,8)=Detector_solid_angle;
+    Detector.detector_para.Solid_angle(i)=Detector_solid_angle;
  
     temp_size = size(Det_angle_search);
     for m=1:temp_size(1)
@@ -87,6 +87,7 @@ for i=1:tot_Det_num
 
 end    
     angle_search(:,:,:)=angle_all(1:max_size,:,:);
+    Detector.angle_search=angle_search;
 
     % unpack --> angle_search_i = angle_search(:,:,i);
 

@@ -7,14 +7,14 @@ if (abs(chkX_Y-2)<0.0001)
 else
     xaxis='Tilt X (deg)';
 end
-[temp, sym_A] = get_element_name(sample_para(13),sample_para(14));
-[temp, sym_B] = get_element_name(sample_para(15),sample_para(16));
+[~, sym_A] = get_element_name(sample_para.EleA_num,sample_para.EleA_shell);
+%[~, sym_B] = get_element_name(sample_para.EleB_num,sample_para.EleB_shell);
 c_select=[0.7,0.7,0;1,0,0;0,0,1;0,0.9,0;0.5,0,0.5;0,0.5,0.5;0.5,0.5,0.5]; %color matrix for display
-Atomic_weight_A = get_element_weight(sample_para(13));
-Atomic_weight_B = get_element_weight(sample_para(15));
-ideal_atomic_ratio = sample_para(17);
-ideal_weight_ratio = sample_para(17)*Atomic_weight_A/Atomic_weight_B;
-ideal_at_per = ideal_atomic_ratio/(1+ideal_atomic_ratio);
+Atomic_weight_A = get_element_weight(sample_para.EleA_num);
+Atomic_weight_B = get_element_weight(sample_para.EleB_num);
+ideal_atomic_ratio = sample_para.Atomic_ratio;
+ideal_weight_ratio = ideal_atomic_ratio*Atomic_weight_A/Atomic_weight_B;
+%ideal_at_per = ideal_atomic_ratio/(1+ideal_atomic_ratio);
 ideal_wt_per = ideal_weight_ratio/(1+ideal_weight_ratio);
 
 temp_size = size (comp_ratio_out);
@@ -29,8 +29,8 @@ diff_wt = comp_ratio_out;
 diff_wt (:,2:temp_size(2)) =(comp_wt (:,2:temp_size(2))-ideal_wt_per)/ideal_wt_per;
 
 temp_size2 = size(diff_wt);
-y_wt_err = min(0.6,max(0.1,max(max(abs(diff_wt(:,2:temp_size2(2)))))*1.2));
-y_wt_comp = max(0.1,max(max(abs(comp_wt(:,2:temp_size2(2))-ideal_wt_per)))*1.2/ideal_wt_per);
+%y_wt_err = min(0.6,max(0.1,max(max(abs(diff_wt(:,2:temp_size2(2)))))*1.2));
+%y_wt_comp = max(0.1,max(max(abs(comp_wt(:,2:temp_size2(2))-ideal_wt_per)))*1.2/ideal_wt_per);
 
 
 %********************************

@@ -7,13 +7,13 @@ if (abs(chkX_Y-2)<0.0001)
 else
     xaxis='Tilt X (deg)';
 end
-[temp, sym_A] = get_element_name(sample_para(13),sample_para(14));
-[temp, sym_B] = get_element_name(sample_para(15),sample_para(16));
+[~, sym_A] = get_element_name(sample_para.EleA_num,sample_para.EleA_shell);
+[~, sym_B] = get_element_name(sample_para.EleB_num,sample_para.EleB_shell);
 c_select=[0.7,0.7,0;1,0,0;0,0,1;0,0.9,0;0.5,0,0.5;0,0.5,0.5;0.5,0.5,0.5]; %color matrix for display
-Atomic_weight_A = get_element_weight(sample_para(13));
-Atomic_weight_B = get_element_weight(sample_para(15));
-ideal_atomic_ratio = sample_para(17);
-ideal_weight_ratio = sample_para(17)*Atomic_weight_A/Atomic_weight_B;
+Atomic_weight_A = get_element_weight(sample_para.EleA_num);
+Atomic_weight_B = get_element_weight(sample_para.EleB_num);
+ideal_atomic_ratio = sample_para.Atomic_ratio;
+ideal_weight_ratio = ideal_atomic_ratio*Atomic_weight_A/Atomic_weight_B;
 ideal_at_per_A = ideal_atomic_ratio/(1+ideal_atomic_ratio);
 ideal_at_per_B = 1 - ideal_at_per_A;
 ideal_wt_per_A = ideal_weight_ratio/(1+ideal_weight_ratio);
@@ -28,22 +28,22 @@ comp_wt_A = comp_A_out;
 diff_wt_A = comp_A_out;
 diff_wt_A (:,2:temp_size(2)) =(comp_wt_A (:,2:temp_size(2))-ideal_wt_per_A)/ideal_wt_per_A;
 
-temp_size2 = size(diff_wt_A);
-y_wt_err_A = min(0.75,max(0.1,max(max(abs(diff_wt_A(:,2:temp_size2(2)))))*1.2));
-y_wt_comp_A = max(0.1,max(max(abs(comp_wt_A(:,2:temp_size2(2))-ideal_wt_per_A)))*1.2/ideal_wt_per_A);
+%temp_size2 = size(diff_wt_A);
+%y_wt_err_A = min(0.75,max(0.1,max(max(abs(diff_wt_A(:,2:temp_size2(2)))))*1.2));
+%y_wt_comp_A = max(0.1,max(max(abs(comp_wt_A(:,2:temp_size2(2))-ideal_wt_per_A)))*1.2/ideal_wt_per_A);
 
 
 
 %convert to atomic percent
 
-comp_at_A = comp_A_out;
-comp_at_A (:,2:temp_size(2)) = comp_at_A (:,2:temp_size(2)) * Atomic_weight_B/Atomic_weight_A;
-diff_at_A = comp_A_out;
-diff_at_A (:,2:temp_size(2)) =(comp_at_A (:,2:temp_size(2))-ideal_at_per_A)/ideal_at_per_A;
+%comp_at_A = comp_A_out;
+%comp_at_A (:,2:temp_size(2)) = comp_at_A (:,2:temp_size(2)) * Atomic_weight_B/Atomic_weight_A;
+%diff_at_A = comp_A_out;
+%diff_at_A (:,2:temp_size(2)) =(comp_at_A (:,2:temp_size(2))-ideal_at_per_A)/ideal_at_per_A;
 
-temp_size2 = size(diff_at_A);
-y_at_err_A = min(0.5,max(0.1,max(max(abs(diff_at_A(:,2:temp_size2(2)))))*1.2));
-y_at_comp_A = max(0.1,max(max(abs(comp_at_A(:,2:temp_size2(2))-ideal_at_per_A)))*1.2/ideal_at_per_A);
+%temp_size2 = size(diff_at_A);
+%y_at_err_A = min(0.5,max(0.1,max(max(abs(diff_at_A(:,2:temp_size2(2)))))*1.2));
+%y_at_comp_A = max(0.1,max(max(abs(comp_at_A(:,2:temp_size2(2))-ideal_at_per_A)))*1.2/ideal_at_per_A);
 
 
 
@@ -95,22 +95,22 @@ comp_wt_B = comp_B_out;
 diff_wt_B = comp_B_out;
 diff_wt_B (:,2:temp_size(2)) =(comp_wt_B (:,2:temp_size(2))-ideal_wt_per_B)/ideal_wt_per_B;
 
-temp_size2 = size(diff_wt_B);
-y_wt_err_B = min(0.5,max(0.1,max(max(abs(diff_wt_B(:,2:temp_size2(2)))))*1.2));
-y_wt_comp_B = max(0.1,max(max(abs(comp_wt_B(:,2:temp_size2(2))-ideal_wt_per_B)))*1.2/ideal_wt_per_B);
+%temp_size2 = size(diff_wt_B);
+%y_wt_err_B = min(0.5,max(0.1,max(max(abs(diff_wt_B(:,2:temp_size2(2)))))*1.2));
+%y_wt_comp_B = max(0.1,max(max(abs(comp_wt_B(:,2:temp_size2(2))-ideal_wt_per_B)))*1.2/ideal_wt_per_B);
 
 
 
 %convert to atomic percent
 
-comp_at_B = comp_B_out;
-comp_at_B (:,2:temp_size(2)) = comp_at_B (:,2:temp_size(2)) * Atomic_weight_B/Atomic_weight_B;
-diff_at_B = comp_B_out;
-diff_at_B (:,2:temp_size(2)) =(comp_at_B (:,2:temp_size(2))-ideal_at_per_B)/ideal_at_per_B;
+%comp_at_B = comp_B_out;
+%comp_at_B (:,2:temp_size(2)) = comp_at_B (:,2:temp_size(2)) * Atomic_weight_B/Atomic_weight_B;
+%diff_at_B = comp_B_out;
+%diff_at_B (:,2:temp_size(2)) =(comp_at_B (:,2:temp_size(2))-ideal_at_per_B)/ideal_at_per_B;
 
-temp_size2 = size(diff_at_B);
-y_Bt_err_B = min(0.5,max(0.1,max(max(abs(diff_at_B(:,2:temp_size2(2)))))*1.2));
-y_Bt_comp_B = max(0.1,max(max(abs(comp_at_B(:,2:temp_size2(2))-ideal_at_per_B)))*1.2/ideal_at_per_B);
+%temp_size2 = size(diff_at_B);
+%y_Bt_err_B = min(0.5,max(0.1,max(max(abs(diff_at_B(:,2:temp_size2(2)))))*1.2));
+%y_Bt_comp_B = max(0.1,max(max(abs(comp_at_B(:,2:temp_size2(2))-ideal_at_per_B)))*1.2/ideal_at_per_B);
 
 
 %***************to figure*****************

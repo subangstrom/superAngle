@@ -1,8 +1,16 @@
-function [ uA, uB, k_AB_ideal] = read_element( EleA_num, EleA_shell, EleB_num, EleB_shell, Atomic_ratio, AB_Density, k_factors_other, cal_chk)
+function [ uA, uB, k_AB_ideal] = read_element( sample_para )
 % Input parameters for mass absorption coefficient and k factor calculation
 % Ternary compounds calculation is under development. However, well known SrTiO3 is incoporated in. 
 % Weizong Xu, March, 2015, email to wxu4@ncsu.edu for any info and questions.  
 
+EleA_num=sample_para.EleA_num;
+EleA_shell=sample_para.EleA_shell;
+EleB_num=sample_para.EleB_num;
+EleB_shell=sample_para.EleB_shell;
+Atomic_ratio=sample_para.Atomic_ratio;
+AB_Density=sample_para.AB_Density;
+k_factors_other=sample_para.k_factors_other;
+cal_chk=sample_para.cal_chk;
 
 %e.g. Al-13 Ni-28
 %Ni3Al;

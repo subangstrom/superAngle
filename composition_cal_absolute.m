@@ -1,10 +1,10 @@
-function [ comp_A_out,comp_B_out] = composition_cal_absolute( exp_file, tot_Det_num1, sample_para, holder_para, holder_frame_para, angle_search, SpuriousX, chkX_Y )
+function [ comp_A_out,comp_B_out] = composition_cal_absolute( exp_file, Detector, sample_para, holder_para, SpuriousX, chkX_Y )
 %Calculate composition of AxBy based on k_ideal and correction coefficient
 %Weizong Xu, April, 2015
 
 
 if exist(exp_file, 'file')
-[ A_exp, A_exp_norm, max_A_exp, B_exp, B_exp_norm, max_B_exp, ratio_exp, ratio_exp_all, tot_Det_num] = read_exp_data( exp_file );
+[ A_exp, ~, ~, B_exp, ~, ~, ~, ~, tot_Det_num] = read_exp_data( exp_file );
 
 exp_all_A(:,1)=A_exp(:,1,1);
 exp_all_A(:,2)=A_exp(:,2,1);
@@ -15,14 +15,14 @@ for i=2:tot_Det_num
    exp_all_B(:,2)=exp_all_B(:,2)+B_exp(:,2,i);
 end
 
-
-
 if (tot_Det_num ==0)
     comp_A_out=0;
     comp_B_out=0;
     return;
 end
 
+tot_Det_num1=Detector.tot_Det_num;
+angle_search=Detector.angle_search;
 if (tot_Det_num > tot_Det_num1)
     uiwait(msgbox('Error!! Number of detectors in Exp is larger than that in Simulation!!'));
     comp_A_out=0;
@@ -34,7 +34,7 @@ if (tot_Det_num < tot_Det_num1)
     uiwait(msgbox('WARNING!! Number of detectors in Exp is less than that in Simu!'));
 end
 
-cal_chk=sample_para(12); 
+cal_chk=sample_para.cal_chk; 
 
 if (cal_chk ~= 1)
 
@@ -46,16 +46,16 @@ if (cal_chk ~= 1)
     
         if (chkX_Y == 2) % 2) along Y tilt
             TiltY=A_exp(i,1);
-            TiltX=sample_para(3);
+            TiltX=sample_para.TiltX;
         else
             TiltX=A_exp(i,1); % other value, along X tilt
-            TiltY=sample_para(4);
+            TiltY=sample_para.TiltY;
         end
         
-        [tempSP, point_out] = single_spot(TiltX, TiltY, tot_Det_num, sample_para, holder_para, holder_frame_para, angle_search, SpuriousX);
+        [~, point_out] = single_spot(TiltX, TiltY, Detector, sample_para, holder_para, SpuriousX);
         omega_A = point_out(:,2);
         omega_B = point_out(:,3);
-        [ tempA, tempB, convert_factor_A, convert_factor_B ] = absolute_scale_factor( sample_para );
+        [ ~, ~, convert_factor_A, convert_factor_B ] = absolute_scale_factor( sample_para );
        
         
         for j=1:tot_Det_num

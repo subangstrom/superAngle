@@ -1,21 +1,20 @@
-function [ Al_outX, Ni_outX] = PositionX_search_parallel( search_Range, d_Range, sample_para_in, holder_para, angle_search, Spurious, chk)
+function [ Al_outX, Ni_outX] = TiltX_search( search_Deg, d_Deg, sample_para_in, holder_para, angle_search, Spurious, chk)
 %Calculate X-ray absorption ratio and absorption correction efficient
-%Search X tilt in range of -search_Range to +search_Range
+%Search X tilt in range of -search_Deg to +search_Deg
 % Weizong Xu, Feb. 2015
 
 % Input: sample_para
 % Predev_angle_X = sample_para_in(1); %deg Assume wedge line parallel to x-axis, thin area towards Y+
 % Predev_angle_Y = sample_para_in(2);
-% TiltX = sample_para_in(3);
+% %TiltX = sample_para_in(3);
 % TiltY = sample_para_in(4);
 Thickness0 = sample_para_in.Thickness;
 n= sample_para_in.Slice_t;
 u1= sample_para_in.uA*1e-7;
-u2= sample_para_in.uA*1e-7;
-HolderY=sample_para_in.POSY;
-% %HolderX = sample_para_in(9);
+u2= sample_para_in.uB*1e-7;
+% HolderX = sample_para_in(9);
 % HolderY = sample_para_in(10);
-% t_chk = sample_para_in(11);
+t_chk = sample_para_in.t_chk;
 % cal_chk = sample_para_in(12);
 % EleA_num = sample_para_in(13);
 % EleA_shell = sample_para_in(14);
@@ -28,39 +27,35 @@ HolderY=sample_para_in.POSY;
 % DepthZ = sample_para_in(21);
 % probe_Ne = sample_para_in(22);
 % acquire_time = sample_para_in(23);
+
+
+
 %sample_para=sample_para_in; %cannot use this in parfor
 
 %dt=Thickness/n; % n Slices along thickness direction
 
-tot_search= double(int16(search_Range*2/d_Range+1));
+tot_search= double(int16(search_Deg*2/d_Deg+1));
 
 Al_outX=zeros(tot_search,2);
 Ni_outX=zeros(tot_search,2);
 %Absrp_outX=zeros(tot_search,2);
 %Xray_num=zeros(tot_search,2);
 
+for i=1:tot_search  %parfor- parallel for loop
 
-        if (sample_para_in.t_chk == 1)
+        TiltX=(i-1)*d_Deg-search_Deg;
+        if (t_chk == 1)
             Thickness = Thickness0;
         else
             Thickness = Thickness0/cos(TiltX*pi/180)/cos(TiltY*pi/180);
         end
         dt=Thickness/n; 
-        
-        
-parfor i=1:tot_search  %parfor- parallel for loop
-
-        HolderX=(i-1)*d_Range-search_Range;
-        if (sqrt(HolderX^2+HolderY^2)<0.9)
-            sample_para=sample_para_in;
-            sample_para.POSX=HolderX; 
-        %sample_para =[Predev_angle_X, Predev_angle_Y, TiltX, TiltY, Thickness, n, u1, u2, HolderX, HolderY, t_chk, cal_chk, EleA_num, EleA_shell, EleB_num, EleB_shell, ...
-        %    Atomic_ratio, AB_Density, k_factors_other, k_AB_ideal, DepthZ, probe_Ne, acquire_time];
+        sample_para=sample_para_in;
+        sample_para.TiltX=TiltX; 
+%         sample_para =[Predev_angle_X, Predev_angle_Y, TiltX, TiltY, Thickness, n, u1, u2, HolderX, HolderY, t_chk, cal_chk, EleA_num, EleA_shell, EleB_num, EleB_shell, ...
+%             Atomic_ratio, AB_Density, k_factors_other, k_AB_ideal, DepthZ, probe_Ne, acquire_time];
         [H_angle_out] = Holder_shadow(sample_para, holder_para, angle_search);
         temp_num=size(H_angle_out);
-        else
-            temp_num(1)=0;
-        end
       if (temp_num(1)>=1)
             
         S_n0 = [0,0,1];
@@ -86,8 +81,9 @@ parfor i=1:tot_search  %parfor- parallel for loop
       end
 
 end
-Al_outX(:,1)=-search_Range:d_Range:search_Range;
-Ni_outX(:,1)=-search_Range:d_Range:search_Range;
+
+Al_outX(:,1)=-search_Deg:d_Deg:search_Deg;
+Ni_outX(:,1)=-search_Deg:d_Deg:search_Deg;
 
 
 end
