@@ -1,11 +1,14 @@
 # Quick Start Manual:
 
-OBJECT: This software calculates: (a) Effective solid angle under specimen tilt and shift condition, (b) Counts ratio, (c) Absolute counts of two elements. (d) Composition analysis based on counts/ratio method. It is based on numeric approach taking effects from multiple-detector geometry, Be holder absorption, holder frame shadowing, and specimen absorption in flat or complex geometry into consideration.
+## OBJECT: 
+This software calculates: (a) Effective solid angle under specimen tilt and shift condition, (b) Counts ratio, (c) Absolute counts of two elements. (d) Composition analysis based on counts/ratio method. It is based on numeric approach taking effects from multiple-detector geometry, Be holder absorption, holder frame shadowing, and specimen absorption in flat or complex geometry into consideration.
 
-NEW UPDATE: INCORPORATE COMPLEX SPECIMEN GEOMETRY (2017)
+## NEW UPDATE: 
+INCORPORATE COMPLEX SPECIMEN GEOMETRY (2017)
 Effective solid angle, counts and counts ratio prediction under complex specimen geometry are now available in SuperAngle. This helps make better EDS prediction in systems with strong absorption issues.
 
-HOW TO RUN: The program is coded in MATLAB. To start, find file superangle.m in the software folder and run. Then a graphic user interface (GUI) will show up, as illustrated below. 
+## HOW TO RUN: 
+The program is MATLAB coded. To start, find file superangle.m in the software folder and run. Then a graphic user interface (GUI) will show up, as illustrated below. Matlab2016a and later version is recommended.
 
 ** To conduct calculation under complex specimen geometry, please Run SuperAngle_script_specimen_geometry_*.m. GUI version is currently under construction. 
 
