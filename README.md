@@ -1,23 +1,22 @@
 # Quick Start Manual:
 
-The program is coded in MATLAB. To start, find file superangle.m in the software folder and run. Then a graphic user interface will show up, as illustrated below.
+OBJECT: This software calculates: (a) Effective solid angle under specimen tilt and shift condition, (b) Counts ratio, (c) Absolute counts of two elements. (d) Composition analysis based on counts/ratio method. It is based on numeric approach taking effects from multiple-detector geometry, Be holder absorption, holder frame shadowing, and specimen absorption in flat or complex geometry into consideration.
 
+NEW UPDATE: INCORPORATE COMPLEX SPECIMEN GEOMETRY (2017)
+Effective solid angle, counts and counts ratio prediction under complex specimen geometry are now available in SuperAngle. This helps make better EDS prediction in systems with strong absorption issues.
 
+HOW TO RUN: The program is coded in MATLAB. To start, find file superangle.m in the software folder and run. Then a graphic user interface (GUI) will show up, as illustrated below. 
 
-This software calculates: (a) Effective solid angle under specimen tilt and shift condition, (b) Counts ratio, (c) Absolute counts of two elements. (d) Composition analysis based on counts/ratio method. It is based on numeric approach taking effects from multiple detector geometry, Be holder absorption. holder frame shadowing, and specimen absorption into consideration.
-
-For example, click Browse bottom in the specimen information panel, choose file “specimen_Ni3Al_demo.xlsx“ as specimen information input.
-
-
+** To conduct calculation under complex specimen geometry, please Run SuperAngle_script_specimen_geometry_*.m. GUI version is currently under construction. 
 
 You will see parameters of specimen information be loaded from the file. The software also pre-loaded default Super-X detector parameters and FEI low background holder setting for calculation. These parameters can be further changed in the GUI interface via direct screen input or file input.
 (1)	Detector setting: detector.xlsx (or other names)
 (2)	Specimen information: specimen_startup.xlsx (or other names)
 (3)	Holder information: holder_FEI_LB.xlsx
+For example, click Browse bottom in the specimen information panel, choose file “specimen_Ni3Al_demo.xlsx“ as specimen information input.
+
 
 To calculate, click functional bottoms in the RUN panel
-
-
 
 (1) Single spot column
 Solid Angle: calculate effective solid angle of A, B elements at single point
@@ -41,10 +40,7 @@ Tips: To save time, choose Display figures from calculated data to re-draw the c
 
 
 
-
-
-
-## Something beyond demo: How to change settings for your sample?
+## Something beyond: How to change settings for your sample?
 
 ###1. Detector configuration
 
@@ -88,9 +84,15 @@ The current version supports FEI low background holder. For other types of holde
 Live acquisition time will vary with dwell time setting. It must be read from raw data or EDS software. It is not the total time of data acquisition in experimental.
 
 
+### 5. Complex Sample Geometry
+Run through script based matlab file SuperAngle_script_specimen_geometry_*.m to calculate. The setting is similar to the standard script version with additional info about the 3D specimen object input and location of the probe with this model. Demo files are provided for example. GUI version is under construction. Matlab 2016a and later version is needed.
+
+To make a model, please run main_convert_CAD2MAT_*.m in /3D_model_build folder to load model from stl format to Matlab. Then, run main_model_build_*.m to build final dual-models for SuperAngle calculation. Detailed comments of usage can be found in these demo files. 
 
 ## Citation Reference
 
 The authors request that any published work or images created using SuperAngle include the following reference:
 
-W. Xu, J.H. Dycus, X. Sang, J.M. Lebeau, A Numerical Model for Multiple Detector Energy Dispersive X-ray Spectroscopy in the Transmission Electron Microscope", Ultramicroscopy, 2016, 164 (2016) 51-61.
+W. Xu, J.H. Dycus, X. Sang, J.M. Lebeau, A Numerical Model for Multiple Detector Energy Dispersive X-ray Spectroscopy in the Transmission Electron Microscope, Ultramicroscopy, 2016, 164 (2016) 51-61.
+
+W. Xu, J.H. Dycus, J.M. Lebeau, Numerical modeling of specimen geometry for quantitative energy dispersive X-ray spectroscopy, Ultramicroscopy, 2017, accepted. (arXiv:1708.04565)
