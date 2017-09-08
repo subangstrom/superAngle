@@ -96,6 +96,6 @@ To make a model, please run main_convert_CAD2MAT_*.m in /3D_model_build folder t
 
 The authors request that any published work or images created using SuperAngle include the following reference:
 
-W. Xu, J.H. Dycus, X. Sang, J.M. Lebeau, A Numerical Model for Multiple Detector Energy Dispersive X-ray Spectroscopy in the Transmission Electron Microscope, Ultramicroscopy, 2016, 164 (2016) 51-61.
+W. Xu, J.H. Dycus, X. Sang, J.M. Lebeau, A Numerical Model for Multiple Detector Energy Dispersive X-ray Spectroscopy in the Transmission Electron Microscope, Ultramicroscopy, 164 (2016) 51-61.
 
-W. Xu, J.H. Dycus, J.M. Lebeau, Numerical modeling of specimen geometry for quantitative energy dispersive X-ray spectroscopy, Ultramicroscopy, 2017, accepted. (arXiv:1708.04565)
+W. Xu, J.H. Dycus, J.M. Lebeau, Numerical modeling of specimen geometry for quantitative energy dispersive X-ray spectroscopy, Ultramicroscopy, 184 (2018) 100-108. (arXiv:1708.04565)
